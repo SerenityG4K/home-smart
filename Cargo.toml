@@ -1,0 +1,107 @@
+# Caméra HomeSmart (à fabriquer soi-même) : protocole partagé et agent qui tourne sur la caméra.
+# `cargo build` à la racine ne construit que HomeSmart ; l'agent : `cargo build -p homesmart-cam`.
+[workspace]
+members = ["cam/proto", "cam/agent"]
+
+[package]
+name = "home-smart"
+version = "0.1.0"
+edition = "2021"
+description = "Contrôle local en Wi-Fi des appareils Tuya / Smart Life, sans compte ni cloud"
+license = "MIT"
+
+[lib]
+name = "homesmart"
+path = "src/lib.rs"
+
+# Application de bureau (Windows / Linux)
+[[bin]]
+name = "homesmart"
+path = "src/main.rs"
+
+# Outil en ligne de commande (scripts, raccourcis)
+[[bin]]
+name = "homesmart-cli"
+path = "src/bin/cli.rs"
+
+[dependencies]
+# Polices d'icônes (emoji monochromes) embarquées : rendu identique sous Windows et Linux.
+egui = { version = "0.37", default-features = false, features = ["monochrome_emoji_fonts"] }
+eframe = { version = "0.37", default-features = false, features = ["accesskit", "clipboard", "default_fonts", "glow", "wayland", "x11"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "time", "sync", "io-util", "signal"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+clap = { version = "4", features = ["derive", "env"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+socket2 = "0.5"
+aes = "0.8"
+aes-gcm = "0.10"
+hmac = "0.12"
+sha2 = "0.10"
+md-5 = "0.10"
+crc32fast = "1"
+base64 = "0.22"
+rand = "0.8"
+ureq = { version = "3", features = ["json"] }
+qrcode = { version = "0.14.1", default-features = false }
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "std", "serde"] }
+# Caméras : client RTSP pur Rust, décodeur H.264 (OpenH264 compilé depuis les sources), WS-Security ONVIF.
+retina = "0.4.21"
+openh264 = "0.9.9"
+futures = "0.3"
+sha1 = "0.10"
+url = "2"
+# Captures d'écran des caméras (PNG compressé ; déjà présent via eframe).
+png = "0.18"
+# Photos JPEG (visages à enregistrer, jeux d'évaluation) ; déjà tiré par eframe.
+zune-jpeg = "0.5"
+# Son des caméras : décodeur AAC pur Rust, sortie audio (WASAPI / ALSA).
+symphonia-core = "0.6.1"
+symphonia-codec-aac = "0.6.1"
+cpal = "0.18.2"
+# Interface plein écran dans le terminal (homesmart-cli tui).
+ratatui = "0.30.2"
+# Notifications du système (Windows : notifications natives ; Linux : D-Bus, pur Rust) pour
+# les alertes critiques, même fenêtre réduite (MIT / Apache-2.0).
+notify-rust = "4"
+# Écoute (sons, parole) : transformée de Fourier pour les spectrogrammes (MIT / Apache-2.0).
+rustfft = "6"
+# Modèles de vision téléchargés en archive (RTMO, format MMDeploy) : lecture du .zip.
+zip = { version = "2", default-features = false, features = ["deflate"] }
+# Caméras HomeSmart (fabriquées soi-même) : protocole de leur agent, et leur annonce mDNS
+# (pur Rust, MIT / Apache-2.0).
+homesmart-cam-proto = { path = "cam/proto" }
+mdns-sd = "0.21"
+hex = "0.4"
+
+[dev-dependencies]
+# Tests : une vraie API de caméra HomeSmart, démarrée dans le test.
+homesmart-cam = { path = "cam/agent" }
+
+# Vision par IA : ONNX Runtime (ort). Version figée : la 2.0 est encore en « rc ».
+# Sous Windows, DirectML accélère sur toute carte graphique (NVIDIA, AMD, Intel) ; ailleurs,
+# le processeur (et rien d'autre à installer). Le moteur choisit à l'exécution, avec repli.
+[target.'cfg(windows)'.dependencies]
+ort = { version = "=2.0.0-rc.15", features = ["directml"] }
+# Galerie des visages chiffrée au repos : DPAPI (compte Windows).
+# Démarrage du système (arrêt brutal du PC) : GetTickCount64.
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security_Cryptography", "Win32_System_SystemInformation"] }
+
+[target.'cfg(not(windows))'.dependencies]
+ort = { version = "=2.0.0-rc.15" }
+
+# Galerie des visages chiffrée au repos : clé dans le trousseau de la session (Secret Service,
+# client D-Bus pur Rust : rien à installer pour compiler).
+[target.'cfg(target_os = "linux")'.dependencies]
+secret-service = { version = "5.2", features = ["rt-async-io-crypto-rust"] }
+# Déjà tiré par secret-service : seulement pour reconnaître « aucun trousseau » dans ses erreurs.
+zbus = { version = "5", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

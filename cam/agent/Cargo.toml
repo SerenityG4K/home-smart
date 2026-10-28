@@ -1,0 +1,34 @@
+[package]
+name = "homesmart-cam"
+version = "0.1.0"
+edition = "2021"
+description = "Agent d'une caméra HomeSmart (à fabriquer soi-même) : flux RTSP 4K avec micro, appairage, réglages"
+license = "MIT"
+
+[lib]
+name = "homesmart_cam"
+path = "src/lib.rs"
+
+[[bin]]
+name = "homesmart-cam"
+path = "src/main.rs"
+
+[dependencies]
+homesmart-cam-proto = { path = "../proto" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "time", "sync", "io-util", "process", "signal", "fs"] }
+# API HTTP de la caméra (MIT).
+axum = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive", "env"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# Annonce sur le réseau local (mDNS, pur Rust, MIT / Apache-2.0).
+mdns-sd = "0.21"
+hex = "0.4"
+rand = "0.8"
+
+[dev-dependencies]
+# Client HTTP des tests (sans TLS).
+ureq = { version = "3", default-features = false, features = ["json"] }

@@ -1,0 +1,31 @@
+# Compilation
+/target
+
+# Exécutables et bibliothèques livrés à côté (HomeSmart.exe, homesmart-cli.exe, .old.exe, DirectML.dll…)
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Données privées : configuration (clés locales Tuya, mots de passe des caméras), journal, énergie, présence
+homesmart.json
+config-sim.json
+journal.jsonl
+energy.json
+presence.json
+session.json
+
+# Clés et certificats (MediaMTX en génère dans le dossier où on le lance)
+*.key
+*.crt
+*.pem
+
+# Modèles d'IA, enregistrements et captures : téléchargés ou produits sur place
+*.onnx
+*.mp4
+*.mkv
+*.wav
+
+# Outils locaux
+/.claude
+/graphify-out

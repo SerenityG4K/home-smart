@@ -1,0 +1,22 @@
+[Unit]
+Description=Caméra HomeSmart (image et son en RTSP, appairage, réglages)
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Utilisateur dédié, membre des groupes video et audio (install.sh) : pas de droits root.
+User=homesmart-cam
+Environment=HOMESMART_CAM_CONFIG=/var/lib/homesmart-cam/config.json
+ExecStart=/usr/local/bin/homesmart-cam run
+Restart=always
+RestartSec=3
+# Rien d'écrit hors de /var/lib/homesmart-cam (configuration, secrets, serveur RTSP).
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/homesmart-cam
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
