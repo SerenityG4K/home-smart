@@ -404,7 +404,9 @@ pub enum Link {
     },
     Miio {
         host: String,
-        /// Jeton de l'appareil (32 caractères hexadécimaux).
+        /// Jeton de l'appareil (32 caractères hexadécimaux). Rangé dans les secrets
+        /// (`config::Secrets`), comme le mot de passe Valetudo.
+        #[serde(default, skip_serializing_if = "String::is_empty")]
         token: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         port: Option<u16>,

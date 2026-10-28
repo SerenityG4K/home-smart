@@ -230,6 +230,10 @@ impl Hub {
         // Marque de session : dit au prochain démarrage si celui-ci s'est terminé net (coupure).
         self.start_session_watch();
         for cfg in list {
+            if cfg.key.is_empty() {
+                self.log(Level::Warning, Source::System, &cfg.id, "Clé locale introuvable (fichier des secrets absent ou venu d'un autre PC) : appareil non connecté, réimporte sa clé");
+                continue;
+            }
             if let Err(e) = codec::parse_key(&cfg.key) {
                 tracing::error!("{} ignoré : {e}", cfg.display_name());
                 continue;

@@ -1,4 +1,5 @@
-//! Protection au repos des données sensibles (aujourd'hui : les empreintes des visages).
+//! Protection au repos des données sensibles : les empreintes des visages, et les clés et mots de
+//! passe de la configuration (`config::Secrets`).
 //!
 //! - **Windows** : DPAPI (`CryptProtectData`, portée utilisateur). La clé dépend du compte Windows
 //!   et de son mot de passe : les données ne se relisent qu'avec ce compte, sur ce PC.
@@ -8,7 +9,11 @@
 //! - **Sans trousseau, ou ailleurs** : rien n'est chiffré, et l'appelant le dit. Une clé posée à
 //!   côté du fichier ne protégerait de rien : on ne fait pas semblant.
 
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Context, Result};
+use base64::{engine::general_purpose::STANDARD as B64, Engine};
+use serde::{Deserialize, Serialize};
+use std::io::Write;
+use std::path::Path;
 
 /// Comment des données sont chiffrées.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -67,6 +72,74 @@ pub fn open(protection: Protection, what: &str, sealed: &[u8]) -> Result<Vec<u8>
             bail!("données chiffrées par « {} », qui n'existe pas sur ce système", p.id())
         }
     }
+}
+
+/// Comment des données sont rangées sur le disque.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Stored {
+    /// Pas encore de fichier.
+    Nothing,
+    /// En clair : ancien format, ou aucune protection sur ce système.
+    Clear,
+    Sealed(Protection),
+}
+
+/// Fichier chiffré sur le disque : la protection employée et le contenu chiffré (base64).
+#[derive(Serialize, Deserialize)]
+pub(crate) struct SealedFile {
+    pub protection: String,
+    pub data: String,
+}
+
+/// Lit un fichier écrit par `write_file` : son contenu en clair et comment il était rangé, `None`
+/// s'il n'existe pas. Un JSON qui n'est pas une enveloppe chiffrée est rendu tel quel (`Clear` :
+/// ancien format en clair). Un fichier abîmé, ou chiffré par un autre compte ou sur un autre PC,
+/// est une erreur : à l'appelant de ne pas l'écraser.
+pub fn read_file(path: &Path, what: &str) -> Result<Option<(Vec<u8>, Stored)>> {
+    let bytes = match std::fs::read(path) {
+        Ok(b) => b,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(e).with_context(|| format!("lecture de {}", path.display())),
+    };
+    let v: serde_json::Value = serde_json::from_slice(&bytes).context("fichier abîmé (JSON invalide)")?;
+    if v.get("protection").is_none() {
+        return Ok(Some((bytes, Stored::Clear)));
+    }
+    let f: SealedFile = serde_json::from_value(v).context("enveloppe chiffrée abîmée")?;
+    let p = Protection::from_id(&f.protection).ok_or_else(|| anyhow!("protection inconnue « {} »", f.protection))?;
+    let sealed = B64.decode(f.data.as_bytes()).context("contenu chiffré abîmé (base64)")?;
+    Ok(Some((open(p, what, &sealed)?, Stored::Sealed(p))))
+}
+
+/// Écrit `plain` chiffré si le système le permet, sinon en clair, de façon atomique (fichier
+/// temporaire puis renommage) et lisible par ton seul compte ; renvoie ce qui a été fait.
+pub fn write_file(path: &Path, what: &str, plain: &[u8]) -> Result<Stored> {
+    if let Some(dir) = path.parent().filter(|d| !d.as_os_str().is_empty()) {
+        std::fs::create_dir_all(dir)?;
+    }
+    let (bytes, stored) = match seal(what, plain)? {
+        Some((p, sealed)) => (serde_json::to_vec(&SealedFile { protection: p.id().to_string(), data: B64.encode(sealed) })?, Stored::Sealed(p)),
+        None => (plain.to_vec(), Stored::Clear),
+    };
+    let mut tmp = path.as_os_str().to_owned();
+    tmp.push(".tmp");
+    let tmp = std::path::PathBuf::from(tmp);
+    write_private(&tmp, &bytes).with_context(|| format!("écriture de {}", tmp.display()))?;
+    std::fs::rename(&tmp, path).with_context(|| format!("écriture de {}", path.display()))?;
+    Ok(stored)
+}
+
+/// Écrit un fichier lisible par ton seul compte (droits 600 sous Linux ; sous Windows, le
+/// dossier du profil l'est déjà).
+pub fn write_private(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    let _ = std::fs::remove_file(path);
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    std::os::unix::fs::OpenOptionsExt::mode(&mut options, 0o600);
+    let mut f = options.open(path)?;
+    f.write_all(bytes)?;
+    f.sync_all()
 }
 
 #[cfg(windows)]

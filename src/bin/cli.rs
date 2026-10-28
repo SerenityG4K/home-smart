@@ -12,6 +12,8 @@ mod eval;
 mod follow;
 #[path = "cli/listen.rs"]
 mod listen;
+#[path = "cli/secrets.rs"]
+mod secrets;
 #[path = "cli/tplink.rs"]
 mod tplink;
 #[path = "cli/tui.rs"]
@@ -129,6 +131,11 @@ enum Cmd {
         #[command(subcommand)]
         cmd: listen::ListenCmd,
     },
+    /// Clés et mots de passe : où ils sont rangés (chiffrés), et vérification avant de publier
+    Secrets {
+        #[command(subcommand)]
+        cmd: secrets::SecretsCmd,
+    },
     /// Affiche les mesures en direct (puissance, courant, tension) et le rythme réel de la prise
     Watch {
         device: String,
@@ -231,6 +238,7 @@ async fn run(cmd: Cmd, path: &Path) -> Result<()> {
         Cmd::Vac { cmd } => vac::run(cmd, path).await,
         Cmd::Vision { cmd } => vision::run(cmd, path).await,
         Cmd::Listen { cmd } => tokio::task::spawn_blocking(move || listen::run(cmd)).await?,
+        Cmd::Secrets { cmd } => secrets::run(cmd, path).await,
         Cmd::Set { device, dp, value } => {
             let v = serde_json::from_str::<Value>(&value).unwrap_or(Value::String(value));
             let mut m = Map::new();

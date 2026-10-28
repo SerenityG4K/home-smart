@@ -11,13 +11,12 @@
 //! (`crate::protect` : DPAPI sous Windows, trousseau de la session sous Linux) ; en clair
 //! seulement si le système n'offre aucune protection, et l'appelant le signale.
 
-use crate::protect::{self, Protection};
-use anyhow::{anyhow, Context, Result};
-use base64::{engine::general_purpose::STANDARD as B64, Engine};
+use crate::protect;
+pub use crate::protect::Stored;
+use anyhow::{Context, Result};
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::Write;
 use std::path::Path;
 
 /// Empreintes gardées au plus par personne (au-delà, les plus anciennes cèdent la place).
@@ -75,74 +74,22 @@ pub enum Identity {
 /// Nom de la galerie pour `protect` (clé du trousseau, entropie DPAPI).
 const SEALED_AS: &str = "faces";
 
-/// Galerie chiffrée sur le disque : la protection employée et le contenu chiffré (base64).
-#[derive(Serialize, Deserialize)]
-struct SealedFile {
-    protection: String,
-    data: String,
-}
-
-/// Comment la galerie est rangée sur le disque.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Stored {
-    /// Pas encore de fichier.
-    Nothing,
-    /// En clair : ancien format, ou aucune protection sur ce système.
-    Clear,
-    Sealed(Protection),
-}
-
-/// Écrit un fichier lisible par ton seul compte (droits 600 sous Linux ; sous Windows, le
-/// dossier du profil l'est déjà).
-fn write_private(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
-    let _ = std::fs::remove_file(path);
-    let mut options = std::fs::OpenOptions::new();
-    options.write(true).create_new(true);
-    #[cfg(unix)]
-    std::os::unix::fs::OpenOptionsExt::mode(&mut options, 0o600);
-    let mut f = options.open(path)?;
-    f.write_all(bytes)?;
-    f.sync_all()
-}
-
 impl FaceGallery {
     /// Lit la galerie, chiffrée ou en clair (ancien format). Un fichier abîmé, ou chiffré par un
     /// autre compte ou sur un autre PC, est une erreur : jamais une galerie vide qui l'écraserait.
     pub fn load(path: &Path) -> Result<(FaceGallery, Stored)> {
-        match std::fs::read(path) {
-            Ok(bytes) => Self::decode(&bytes).with_context(|| format!("lecture de {}", path.display())),
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok((FaceGallery::default(), Stored::Nothing)),
-            Err(e) => Err(e).with_context(|| format!("lecture de {}", path.display())),
-        }
-    }
-
-    fn decode(bytes: &[u8]) -> Result<(FaceGallery, Stored)> {
-        let v: serde_json::Value = serde_json::from_slice(bytes).context("fichier abîmé (JSON invalide)")?;
-        if v.get("protection").is_none() {
-            return Ok((serde_json::from_value(v).context("galerie en clair abîmée")?, Stored::Clear));
-        }
-        let f: SealedFile = serde_json::from_value(v).context("enveloppe chiffrée abîmée")?;
-        let p = Protection::from_id(&f.protection).ok_or_else(|| anyhow!("protection inconnue « {} »", f.protection))?;
-        let sealed = B64.decode(f.data.as_bytes()).context("contenu chiffré abîmé (base64)")?;
-        let plain = protect::open(p, SEALED_AS, &sealed)?;
-        Ok((serde_json::from_slice(&plain).context("galerie déchiffrée illisible")?, Stored::Sealed(p)))
+        let Some((plain, stored)) = protect::read_file(path, SEALED_AS).with_context(|| format!("lecture de {}", path.display()))? else {
+            return Ok((FaceGallery::default(), Stored::Nothing));
+        };
+        let what = if stored == Stored::Clear { "galerie en clair abîmée" } else { "galerie déchiffrée illisible" };
+        let g = serde_json::from_slice(&plain).context(what).with_context(|| format!("lecture de {}", path.display()))?;
+        Ok((g, stored))
     }
 
     /// Enregistrement atomique (fichier temporaire puis renommage), chiffré si le système le
     /// permet, sinon en clair ; renvoie ce qui a été fait.
     pub fn save(&self, path: &Path) -> Result<Stored> {
-        if let Some(dir) = path.parent().filter(|d| !d.as_os_str().is_empty()) {
-            std::fs::create_dir_all(dir)?;
-        }
-        let plain = serde_json::to_vec(self)?;
-        let (bytes, stored) = match protect::seal(SEALED_AS, &plain)? {
-            Some((p, sealed)) => (serde_json::to_vec(&SealedFile { protection: p.id().to_string(), data: B64.encode(sealed) })?, Stored::Sealed(p)),
-            None => (plain, Stored::Clear),
-        };
-        let tmp = path.with_extension("json.tmp");
-        write_private(&tmp, &bytes).with_context(|| format!("écriture de {}", tmp.display()))?;
-        std::fs::rename(&tmp, path).with_context(|| format!("écriture de {}", path.display()))?;
-        Ok(stored)
+        protect::write_file(path, SEALED_AS, &serde_json::to_vec(self)?)
     }
 
     /// Ajoute une empreinte à la personne `name` (créée si besoin) ; renvoie son identifiant.
@@ -246,6 +193,8 @@ impl IdentityVotes {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::protect::{Protection, SealedFile};
+    use base64::{engine::general_purpose::STANDARD as B64, Engine};
 
     fn unit(seed: u32, dim: usize) -> Vec<f32> {
         // Vecteur pseudo-aléatoire reproductible.

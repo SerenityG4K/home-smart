@@ -1,0 +1,14 @@
+#!/bin/sh
+# Refuse un commit qui contiendrait une valeur privée de ta configuration HomeSmart : clé locale,
+# mot de passe, jeton, identifiant ou n° de série d'un de tes appareils (seul l'endroit est
+# affiché, jamais la valeur). À activer une fois par clone :
+#   git config core.hooksPath .githooks
+# Pour passer outre en connaissance de cause : git commit --no-verify
+for cli in ./target/release/homesmart-cli.exe ./target/release/homesmart-cli ./target/debug/homesmart-cli.exe ./target/debug/homesmart-cli ./homesmart-cli.exe homesmart-cli; do
+    # Une version trop ancienne n'a pas la commande : on passe à la suivante.
+    if command -v "$cli" >/dev/null 2>&1 && "$cli" secrets audit --help >/dev/null 2>&1; then
+        exec "$cli" secrets audit --staged
+    fi
+done
+echo "pre-commit : homesmart-cli introuvable (compile-le : cargo build --release), vérification des valeurs privées sautée" >&2
+exit 0

@@ -210,7 +210,8 @@ pub struct CameraConfig {
     #[serde(default = "default_user")]
     pub username: String,
     /// Imou : le code de sécurité imprimé sous la caméra (« SC »), sauf s'il a été changé.
-    #[serde(default)]
+    /// Rangé dans les secrets (`config::Secrets`), pas dans `homesmart.json`.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub password: String,
     #[serde(default)]
     pub brand: Brand,
@@ -236,7 +237,7 @@ pub struct CameraConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub agent: Option<AgentLink>,
     /// Caméra Tapo : empreintes du mot de passe du compte TP-Link (jamais le mot de passe), pour
-    /// son API locale (alarme, suivi des mouvements, carte SD).
+    /// son API locale (alarme, suivi des mouvements, carte SD). Rangées dans les secrets.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tapo: Option<crate::tplink::camera::TapoSecret>,
     /// Détection de sabotage (objectif masqué, caméra détournée, image floutée).
@@ -305,6 +306,8 @@ pub struct AgentLink {
     /// Identifiant de ce HomeSmart sur la caméra (aussi l'utilisateur RTSP).
     pub client_id: String,
     /// Secret partagé né de l'appairage (hexadécimal) : signe les requêtes, donne le mot de passe RTSP.
+    /// Rangé dans les secrets (`config::Secrets`), pas dans `homesmart.json`.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub secret: String,
 }
 

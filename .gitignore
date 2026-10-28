@@ -29,3 +29,7 @@ session.json
 # Outils locaux
 /.claude
 /graphify-out
+
+# Secrets et galerie des visages, si une configuration de test est rangée ici (--config)
+*.secrets.json
+faces.json

@@ -59,8 +59,9 @@ ou `libxcb` selon la session. Sur Debian/Ubuntu :
 sudo apt install libxkbcommon0 libgl1 libwayland-client0 libxcb1
 ```
 
-Pour chiffrer les visages enregistrés (vision par IA), un trousseau compatible Secret Service :
-celui du bureau suffit (GNOME Keyring, KWallet, ou KeePassXC avec son intégration Secret Service).
+Pour chiffrer les clés et mots de passe des appareils, et les visages enregistrés (vision par IA),
+un trousseau compatible Secret Service : celui du bureau suffit (GNOME Keyring, KWallet, ou
+KeePassXC avec son intégration Secret Service).
 
 ### Pare-feu
 
@@ -798,6 +799,9 @@ homesmart-cli listen models --install       # modèles de l'écoute (≈ 264 Mo)
 homesmart-cli listen tag son.wav            # sons reconnus dans un fichier
 homesmart-cli listen transcribe parole.wav  # parole → texte (voix détectée, puis Whisper)
 homesmart-cli listen eval sounds --data <dossier>   # aussi : speech (--snr 10, --phone)
+
+homesmart-cli secrets status                # où sont rangés les clés et mots de passe, et comment
+homesmart-cli secrets audit <dossier>       # aucune valeur privée de ta configuration dans ces fichiers ?
 ```
 
 Beaucoup d'appareils n'acceptent **qu'une connexion locale à la fois** : si l'application est
@@ -848,6 +852,47 @@ leur adresse et, pour miIO, leur jeton) ; `schema` reprend le `mapping` de tinyt
 configuration, `session.json` (rafraîchi toutes les 5 s, avec la dernière minute de mesures des
 prises) permet de reconnaître au démarrage une session terminée net.
 
+### Clés et mots de passe : rangés à part, chiffrés
+
+`homesmart.json` ne garde **aucun secret** : on peut le montrer ou le joindre à une demande d'aide.
+Les clés locales Tuya, les mots de passe et codes de sécurité des caméras, les empreintes du mot de
+passe TP-Link (Tapo), le secret d'appairage des caméras HomeSmart, et les mots de passe ou jetons des
+aspirateurs vont dans **`homesmart.secrets.json`**, à côté de lui (`%APPDATA%\HomeSmart`,
+`~/.config/homesmart`) : jamais dans le dossier de l'application ni dans le dépôt du code.
+
+Ce fichier est chiffré comme la galerie des visages (`src/protect.rs`) : **DPAPI** sous Windows
+(lisible par ton seul compte Windows, sur ce PC), **AES-256-GCM** sous Linux avec une clé rangée dans
+le trousseau de ta session ; sans trousseau, il reste en clair avec les droits `600`, et le journal
+le dit. Mêmes limites que pour les visages (voir « Protection des empreintes ») : un programme lancé
+sous ton compte peut le déchiffrer comme HomeSmart le fait.
+
+- Une clé écrite à la main dans `homesmart.json` (comme dans l'exemple ci-dessus) ou un ancien
+  fichier où tout était en clair : au lancement suivant, les secrets en sont sortis et rangés dans
+  `homesmart.secrets.json` ; le journal l'indique (source « Système »). L'ancien contenu en clair
+  n'est pas effacé physiquement du disque (SSD, journal du système de fichiers).
+- Les secrets d'abord, la configuration ensuite : un arrêt entre les deux n'en perd aucun.
+- Un fichier des secrets illisible (abîmé, venu d'un autre compte ou d'un autre PC) n'est jamais
+  écrasé : HomeSmart refuse de démarrer et dit quoi faire (le renommer, puis ressaisir les clés).
+- Le fichier des secrets ne se relit que sur le PC et le compte qui l'ont écrit : sur un autre PC,
+  récupère à nouveau les clés (`import-cloud`) et ressaisis les mots de passe des caméras.
+- `homesmart-cli secrets status` dit où il est et comment il est protégé.
+
+## Contribuer
+
+Le dépôt ne contient aucune donnée privée (configuration, journal, clés, modèles, exécutables :
+voir `.gitignore`). Pour qu'aucune ne s'y glisse en travaillant (une vraie clé dans un test, un
+vrai mot de passe dans un exemple…), active une fois le crochet fourni :
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Avant chaque commit, il lance `homesmart-cli secrets audit --staged` : les fichiers commités sont
+comparés aux valeurs de **ta** configuration (clés, mots de passe, jetons, empreinte du mot de passe
+TP-Link, identifiants, n° de série et adresses MAC de tes appareils). Si l'une y est, le commit est
+refusé et seul l'endroit est affiché, jamais la valeur. Les tests et exemples emploient des valeurs
+factices.
+
 ## Organisation du code
 
 | Fichier | Contenu |
@@ -864,6 +909,7 @@ prises) permet de reconnaître au démarrage une session terminée net.
 | `src/problems.rs` | détection des problèmes : règles pures et testées (extinctions non demandées et leur cause, hors ligne, tension, consommation, arrêt brutal du PC) |
 | `src/hub/problems.rs` | leur application aux appareils, aux caméras et à la session précédente ; essais contre des prises et une caméra simulées |
 | `src/protect.rs` | chiffrement au repos des données sensibles (DPAPI sous Windows, trousseau Secret Service sous Linux) |
+| `src/config.rs` | la configuration ; ses secrets rangés à part et chiffrés (`homesmart.secrets.json`) |
 | `src/house.rs` | plan de la maison (pièces, position des appareils) |
 | `src/camera/` | caméras : flux RTSP + décodage (`stream.rs`), ONVIF (`onvif.rs`), recherche (`discover.rs`), caméra simulée (`sim.rs`), caméras HomeSmart (`agent.rs`) |
 | `cam/proto/` | protocole des caméras HomeSmart : réglages, appairage SPAKE2, requêtes signées |
