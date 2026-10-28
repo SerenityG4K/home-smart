@@ -49,8 +49,12 @@ homesmart --demo
 
 ### Linux
 
-Pour compiler : Rust (via [rustup](https://rustup.rs)) et un compilateur C (`sudo apt install build-essential`),
-utilisé par la bibliothèque TLS de l'import Smart Life.
+Pour compiler : Rust (via [rustup](https://rustup.rs)), un compilateur C, utilisé par la bibliothèque
+TLS de l'import Smart Life, et les en-têtes ALSA pour le son des caméras. Sur Debian/Ubuntu :
+
+```bash
+sudo apt install build-essential pkg-config libasound2-dev
+```
 
 Dépendances d'exécution habituelles d'une app OpenGL : `libxkbcommon`, `libGL`, et `libwayland`
 ou `libxcb` selon la session. Sur Debian/Ubuntu :
@@ -862,8 +866,10 @@ aspirateurs vont dans **`homesmart.secrets.json`**, à côté de lui (`%APPDATA%
 
 Ce fichier est chiffré comme la galerie des visages (`src/protect.rs`) : **DPAPI** sous Windows
 (lisible par ton seul compte Windows, sur ce PC), **AES-256-GCM** sous Linux avec une clé rangée dans
-le trousseau de ta session ; sans trousseau, il reste en clair avec les droits `600`, et le journal
-le dit. Mêmes limites que pour les visages (voir « Protection des empreintes ») : un programme lancé
+le trousseau de ta session ; sans trousseau (aucun installé, ou HomeSmart lancé hors session de
+bureau : SSH, service, tâche planifiée), il reste en clair avec les droits `600`, et le journal le
+dit. Un fichier déjà chiffré, lui, ne se relit que depuis la session qui a accès au trousseau.
+Mêmes limites que pour les visages (voir « Protection des empreintes ») : un programme lancé
 sous ton compte peut le déchiffrer comme HomeSmart le fait.
 
 - Une clé écrite à la main dans `homesmart.json` (comme dans l'exemple ci-dessus) ou un ancien

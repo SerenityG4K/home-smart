@@ -233,6 +233,18 @@ mod aead {
             .decrypt(Nonce::from_slice(nonce), Payload { msg: body, aad: &aad(what) })
             .map_err(|_| anyhow!("déchiffrement impossible : fichier abîmé, ou clé du trousseau différente"))
     }
+
+    /// Essaie chaque clé : le contenu, authentifié, ne s'ouvre qu'avec celle qui l'a chiffré.
+    pub fn decrypt_any(keys: &[Vec<u8>], what: &str, sealed: &[u8]) -> Result<Vec<u8>> {
+        let mut last = anyhow!("aucune clé");
+        for key in keys {
+            match decrypt(key, what, sealed) {
+                Ok(plain) => return Ok(plain),
+                Err(e) => last = e,
+            }
+        }
+        Err(last)
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -252,7 +264,9 @@ mod keyring {
     fn absent(e: &Error) -> bool {
         use zbus::DBusError;
         let name = match e {
-            Error::Unavailable => return true,
+            // Bus de session injoignable (SSH, service systemd, cron) : zbus le dit ainsi depuis
+            // la 5.19, que secret-service ne traduit pas en `Unavailable`.
+            Error::Unavailable | Error::Zbus(zbus::Error::Connection(..)) => return true,
             Error::Zbus(zbus::Error::MethodError(name, ..)) => name.to_string(),
             Error::Zbus(zbus::Error::FDO(e)) => e.name().to_string(),
             Error::ZbusFdo(e) => e.name().to_string(),
@@ -262,9 +276,11 @@ mod keyring {
         name == "ServiceUnknown" || name == "NameHasNoOwner" || name.starts_with("Spawn.")
     }
 
-    /// Clé de `what` rangée dans le trousseau par défaut ; si `create`, tirée au hasard et rangée
-    /// quand elle manque. `Ok(None)` : pas de trousseau sur ce système.
-    fn key(what: &str, create: bool) -> Result<Option<Vec<u8>>> {
+    /// Clés de `what` rangées dans le trousseau par défaut ; si `create`, une clé tirée au hasard et
+    /// rangée quand il n'y en a aucune. Il peut y en avoir plusieurs : deux premiers enregistrements
+    /// simultanés (deux fils, ou l'appli et la ligne de commande) trouvent le trousseau vide et
+    /// rangent chacun la leur. `Ok(None)` : pas de trousseau sur ce système.
+    fn keys(what: &str, create: bool) -> Result<Option<Vec<Vec<u8>>>> {
         let ss = match SecretService::connect(EncryptionType::Dh) {
             Ok(ss) => ss,
             Err(e) if absent(&e) => return Ok(None),
@@ -279,7 +295,8 @@ mod keyring {
         if collection.is_locked()? {
             collection.unlock().context("trousseau verrouillé")?;
         }
-        if let Some(item) = collection.search_items(attributes(what))?.first() {
+        let mut keys = Vec::new();
+        for item in collection.search_items(attributes(what))? {
             if item.is_locked()? {
                 item.unlock().context("clé verrouillée dans le trousseau")?;
             }
@@ -287,7 +304,10 @@ mod keyring {
             if key.len() != 32 {
                 bail!("clé de « {what} » abîmée dans le trousseau");
             }
-            return Ok(Some(key));
+            keys.push(key);
+        }
+        if !keys.is_empty() {
+            return Ok(Some(keys));
         }
         if !create {
             bail!("clé de « {what} » introuvable dans le trousseau (trousseau réinitialisé, ou autre compte ?)");
@@ -295,19 +315,30 @@ mod keyring {
         let key = aead::new_key();
         let label = format!("HomeSmart : clé de chiffrement ({what})");
         collection.create_item(&label, attributes(what), &key, false, "application/octet-stream").context("rangement de la clé dans le trousseau")?;
-        Ok(Some(key))
+        Ok(Some(vec![key]))
     }
 
     pub fn seal(what: &str, plain: &[u8]) -> Result<Option<Vec<u8>>> {
-        match key(what, true)? {
-            Some(key) => aead::encrypt(&key, what, plain).map(Some),
+        match keys(what, true)? {
+            Some(keys) => aead::encrypt(&keys[0], what, plain).map(Some),
             None => Ok(None),
         }
     }
 
+    /// Chaque clé de `what` est essayée : les données ont pu être chiffrées avec n'importe laquelle.
     pub fn open(what: &str, sealed: &[u8]) -> Result<Vec<u8>> {
-        let key = key(what, false)?.ok_or_else(|| anyhow!("aucun trousseau (Secret Service) sur ce système : la clé de ces données y est rangée"))?;
-        aead::decrypt(&key, what, sealed)
+        let keys = keys(what, false)?.ok_or_else(|| anyhow!("aucun trousseau (Secret Service) sur ce système : la clé de ces données y est rangée"))?;
+        aead::decrypt_any(&keys, what, sealed)
+    }
+
+    /// Retire du trousseau les clés de `what` (essais).
+    #[cfg(test)]
+    pub fn forget(what: &str) {
+        let Ok(ss) = SecretService::connect(EncryptionType::Dh) else { return };
+        let Ok(collection) = ss.get_default_collection() else { return };
+        for item in collection.search_items(attributes(what)).unwrap_or_default() {
+            let _ = item.delete();
+        }
     }
 }
 
@@ -328,6 +359,41 @@ mod tests {
         *bad.last_mut().unwrap() ^= 1;
         assert!(aead::decrypt(&key, "faces", &bad).is_err());
         assert!(aead::decrypt(&key, "faces", &sealed[..20]).is_err());
+    }
+
+    #[test]
+    fn any_of_several_keys_opens() {
+        let (k1, k2) = (aead::new_key(), aead::new_key());
+        let sealed = aead::encrypt(&k2, "secrets", b"cles").unwrap();
+        assert_eq!(aead::decrypt_any(&[k1.clone(), k2], "secrets", &sealed).unwrap(), b"cles");
+        let e = aead::decrypt_any(&[k1, aead::new_key()], "secrets", &sealed).unwrap_err();
+        assert!(e.to_string().contains("déchiffrement impossible"), "{e}");
+        assert!(aead::decrypt_any(&[], "secrets", &sealed).is_err());
+    }
+
+    /// Premiers chiffrements simultanés, trousseau encore vide pour ces données : chacun ayant pu
+    /// ranger sa propre clé, chacun relit pourtant ce qu'il a écrit.
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn simultaneous_first_seals_all_open() {
+        let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_nanos();
+        let what = format!("homesmart-test-race-{}-{nanos}", std::process::id());
+        let sealed: Vec<_> = std::thread::scope(|s| {
+            let handles: Vec<_> = (0..8).map(|i| s.spawn({
+                let what = &what;
+                move || seal(what, format!("données {i}").as_bytes())
+            })).collect();
+            handles.into_iter().map(|h| h.join().unwrap()).collect()
+        });
+        let opened: Vec<_> = sealed.into_iter().map(|r| r.unwrap().map(|(p, s)| open(p, &what, &s))).collect();
+        keyring::forget(&what);
+        for (i, r) in opened.into_iter().enumerate() {
+            let Some(r) = r else {
+                eprintln!("aucun trousseau ici : chiffrements simultanés non vérifiés");
+                return;
+            };
+            assert_eq!(r.unwrap(), format!("données {i}").as_bytes());
+        }
     }
 
     /// Chiffrement réel du système (DPAPI ; trousseau sous Linux s'il y en a un).
