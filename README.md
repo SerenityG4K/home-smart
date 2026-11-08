@@ -1,47 +1,50 @@
 # HomeSmart
 
-Application de bureau **Windows / Linux** en Rust pour piloter tes appareils **Tuya / Smart Life**
-directement **en Wi-Fi sur ton réseau local** : pas de compte, pas de cloud, pas de serveur.
+*[Lire en français](README.fr.md)* · HomeSmart's interface is in French for now: on-screen labels are quoted
+as they appear, followed by their English meaning.
 
-- Connexion TCP permanente à chaque appareil : une commande part en quelques millisecondes,
-  et les changements faits ailleurs (interrupteur physique…) s'affichent en direct.
-- Protocoles Tuya **3.1, 3.2, 3.3, 3.4 et 3.5** (chiffrement AES-ECB/GCM, négociation de clé de session).
-- Découverte automatique des appareils sur le Wi-Fi (annonces UDP), et suivi de leur adresse IP.
-- Lampes (marche, luminosité, blanc chaud/froid, couleur), prises avec mesure de consommation,
-  multiprises, volets, et un éditeur générique pour tout le reste (radiateurs, ventilateurs…).
-- **Garde-fous** pour les appareils à risque (chauffage…), **minuterie** intégrée aux prises,
-  **programmes horaires** avec vue semaine, **suivi de consommation** (kWh, €, graphiques interactifs).
-- **Maison 3D** : plan éditable de tes pièces et maquette 3D où les appareils allumés s'illuminent.
-- **Caméras IP** (Imou / Dahua d'abord, et toute caméra RTSP + ONVIF) : vidéo en direct décodée sur
-  le PC, orientation, positions mémorisées, captures, recherche automatique sur le réseau.
-- **Aspirateurs robots**, en local : Tuya / Smart Life, Valetudo (sans compte), Xiaomi / Roborock /
-  Dreame d'avant 2022 en miIO (jeton) — lancer, pause, base, signal sonore, puissance, eau, mode,
-  état, batterie, erreurs, usure ; programmes et scénarios (« maison vide → nettoyer »).
-- **Journal complet** : chaque action est enregistrée, quelle que soit son origine.
-- **Détection des problèmes** : extinctions et allumages non demandés (avec leur cause probable :
-  bouton, autre application, minuterie de la prise, coupure de courant, protection), appareils hors
-  ligne ou redémarrés, défauts signalés, tension anormale, consommation inhabituelle, caméras sans
-  image, analyse ou écoute arrêtées, et arrêt brutal du PC sur lequel tourne HomeSmart.
-- Un seul exécutable natif (egui + OpenGL), ~10 Mo, démarrage instantané.
-- Interface simple et adaptée à la fenêtre : navigation à gauche (Maison, Caméras, Énergie,
-  Problèmes, Activité, Programmes), repliée en icônes quand la fenêtre est étroite ; un clic sur une tuile
-  allume ou éteint, le détail s'ouvre dans un panneau posé par-dessus l'écran ; thème sombre ou
-  clair (Préférences › Apparence).
+A **Windows / Linux** desktop application written in Rust to control your **Tuya / Smart Life** devices
+directly **over Wi-Fi on your local network**: no account, no cloud, no server.
 
-## Démarrer
+- A persistent TCP connection to each device: a command goes out in a few milliseconds,
+  and changes made elsewhere (physical switch…) show up live.
+- Tuya protocols **3.1, 3.2, 3.3, 3.4 and 3.5** (AES-ECB/GCM encryption, session key negotiation).
+- Automatic discovery of devices on the Wi-Fi (UDP broadcasts), and tracking of their IP address.
+- Lights (on/off, brightness, warm/cool white, color), energy-monitoring plugs,
+  power strips, shutters/blinds, and a generic editor for everything else (heaters, fans…).
+- **Safeguards** for risky devices (heating…), the plugs' built-in **timer**,
+  **schedules** with a week view, **energy tracking** (kWh, €, interactive charts).
+- **3D house**: an editable floor plan of your rooms and a 3D model in which devices that are on light up.
+- **IP cameras** (Imou / Dahua first, and any RTSP + ONVIF camera): live video decoded on
+  the PC, pan/tilt, saved positions, snapshots, automatic search on the network.
+- **Robot vacuums**, locally: Tuya / Smart Life, Valetudo (no account), pre-2022 Xiaomi / Roborock /
+  Dreame over miIO (token) — start, pause, dock, beep, suction power, water, mode,
+  status, battery, errors, wear; schedules and scenarios ("empty house → clean").
+- **Complete log**: every action is recorded, whatever its source.
+- **Problem detection**: unrequested switch-offs and switch-ons (with their likely cause:
+  button, another app, the plug's timer, power cut, protection), devices offline
+  or restarted, reported faults, abnormal voltage, unusual consumption, cameras with no
+  picture, stopped analysis or listening, and a sudden shutdown of the PC HomeSmart runs on.
+- A single native executable (egui + OpenGL), ~10 MB, instant startup.
+- A simple interface that adapts to the window: navigation on the left (Maison (Home), Caméras (Cameras),
+  Énergie (Energy), Problèmes (Problems), Activité (Activity), Programmes (Schedules)), collapsed to icons
+  when the window is narrow; clicking a tile turns the device on or off, and its details open in a panel
+  laid over the screen; dark or light theme, in Préférences › Apparence (Preferences › Appearance).
+
+## Getting started
 
 ```bash
 cargo build --release
 ```
 
-Les exécutables sont dans `target/release/` :
+The executables are in `target/release/`:
 
-| Exécutable | Rôle |
+| Executable | Role |
 |---|---|
-| `homesmart` (`homesmart.exe`) | l'application |
-| `homesmart-cli` | la même chose en ligne de commande, pour les scripts et raccourcis |
+| `homesmart` (`homesmart.exe`) | the application |
+| `homesmart-cli` | the same thing on the command line, for scripts and shortcuts |
 
-Pour essayer sans matériel, avec des appareils simulés :
+To try it without hardware, with simulated devices:
 
 ```bash
 homesmart --demo
@@ -49,790 +52,800 @@ homesmart --demo
 
 ### Linux
 
-Pour compiler : Rust (via [rustup](https://rustup.rs)), un compilateur C, utilisé par la bibliothèque
-TLS de l'import Smart Life, et les en-têtes ALSA pour le son des caméras. Sur Debian/Ubuntu :
+To build: Rust (via [rustup](https://rustup.rs)), a C compiler, used by the TLS library
+of the Smart Life import, and the ALSA headers for camera audio. On Debian/Ubuntu:
 
 ```bash
 sudo apt install build-essential pkg-config libasound2-dev
 ```
 
-Dépendances d'exécution habituelles d'une app OpenGL : `libxkbcommon`, `libGL`, et `libwayland`
-ou `libxcb` selon la session. Sur Debian/Ubuntu :
+The usual runtime dependencies of an OpenGL app: `libxkbcommon`, `libGL`, and `libwayland`
+or `libxcb` depending on the session. On Debian/Ubuntu:
 
 ```bash
 sudo apt install libxkbcommon0 libgl1 libwayland-client0 libxcb1
 ```
 
-Pour chiffrer les clés et mots de passe des appareils, et les visages enregistrés (vision par IA),
-un trousseau compatible Secret Service : celui du bureau suffit (GNOME Keyring, KWallet, ou
-KeePassXC avec son intégration Secret Service).
+To encrypt device keys and passwords, and saved faces (AI vision),
+a Secret Service-compatible keyring: your desktop's own is enough (GNOME Keyring, KWallet, or
+KeePassXC with its Secret Service integration).
 
-### Pare-feu
+### Firewall
 
-- **Windows** : au premier lancement, autorise HomeSmart sur le réseau **privé** (sinon la découverte ne voit rien).
-- **Linux** : ouvre en entrée les ports UDP **6666, 6667 et 7000** (annonces des appareils).
-- Le pilotage passe par le port TCP **6668** des appareils (sortant, rien à ouvrir).
+- **Windows**: on first launch, allow HomeSmart on **private** networks (otherwise discovery sees nothing).
+- **Linux**: open inbound UDP ports **6666, 6667 and 7000** (device broadcasts).
+- Control goes through the devices' TCP port **6668** (outbound, nothing to open).
 
-## La clé locale : le point important
+## The local key: the important part
 
-Chaque appareil Tuya chiffre ses échanges avec une **clé locale** de 16 caractères. HomeSmart en a
-besoin, avec l'**identifiant** de l'appareil (que la découverte trouve toute seule).
+Every Tuya device encrypts its traffic with a 16-character **local key**. HomeSmart needs it,
+along with the device's **ID** (which discovery finds on its own).
 
-Cette clé n'est pas inscrite sur l'appareil : elle est attribuée par le cloud Tuya **au moment de
-l'appairage**. Il faut donc la récupérer **une seule fois**. Ensuite tout se passe en local, et tu
-peux même couper l'accès Internet des appareils dans ta box : la clé ne change plus tant que
-l'appareil n'est pas réinitialisé ou ré-appairé.
+This key is not printed on the device: it is assigned by the Tuya cloud **at pairing
+time**. So you only need to retrieve it **once**. After that, everything happens locally, and you
+can even cut the devices' Internet access in your router: the key no longer changes as long as
+the device is not reset or re-paired.
 
-Selon ta situation :
+Depending on your situation:
 
-1. **Tes appareils sont dans ton app Smart Life** (le cas le plus courant) : clique sur
-   **« Importer depuis Smart Life »**.
-   1. Dans Smart Life : *Moi › ⚙ Paramètres › Compte et sécurité*, copie le **Code utilisateur**.
-   2. Colle-le dans HomeSmart, qui affiche un QR code.
-   3. Dans Smart Life : *Accueil › « + » › Scanner*, scanne le QR code et confirme.
+1. **Your devices are in your Smart Life app** (the most common case): click
+   **« Importer depuis Smart Life »** (Import from Smart Life).
+   1. In Smart Life: *Me › ⚙ Settings › Account and Security*, copy the **User Code**.
+   2. Paste it into HomeSmart, which displays a QR code.
+   3. In Smart Life: *Home › "+" › Scan*, scan the QR code and confirm.
 
-   HomeSmart récupère tous tes appareils avec leurs clés, **ferme la session**, et ne contacte plus
-   jamais le cloud. C'est le mécanisme de l'intégration Tuya officielle de Home Assistant (la demande
-   d'accès s'affiche d'ailleurs au nom de « Home Assistant ») ; aucun compte développeur n'est nécessaire.
-   Même chose en ligne de commande : `homesmart-cli import-cloud <code utilisateur>`.
+   HomeSmart retrieves all your devices with their keys, **closes the session**, and never contacts
+   the cloud again. This is the mechanism of Home Assistant's official Tuya integration (in fact, the access
+   request is shown under the name "Home Assistant"); no developer account is needed.
+   Same thing on the command line: `homesmart-cli import-cloud <user code>`.
 
-   Ensuite, **ne supprime pas** les appareils de l'app Smart Life : les retirer les réinitialise et
-   change leur clé. Tu peux simplement ne plus ouvrir l'app, ou la désinstaller.
-2. **Tu as déjà les clés** (tinytuya, Home Assistant…) : glisse le `devices.json` de
-   [tinytuya](https://github.com/jasonacox/tinytuya) sur la fenêtre, ou saisis la clé avec « + Ajouter ».
-3. **L'appareil est neuf** : le firmware Tuya d'origine refuse de fonctionner sans une activation
-   initiale par le cloud ; aucune application ne peut l'éviter. Trois options :
-   - un **compte jetable**, le temps d'appairer l'appareil puis d'importer ses clés (option 1) ;
-   - [tuya-cloudcutter](https://github.com/tuya-cloudcutter/tuya-cloudcutter), qui configure
-     certains modèles (puces BK7231 à firmware vulnérable) avec une clé que tu choisis, sans jamais
-     passer par le cloud ;
-   - flasher un firmware libre (OpenBeken, ESPHome…) : l'appareil ne parle alors plus le protocole
-     Tuya, et HomeSmart ne le pilote plus.
+   Afterwards, **do not remove** the devices from the Smart Life app: removing them resets them and
+   changes their key. You can simply stop opening the app, or uninstall it.
+2. **You already have the keys** (tinytuya, Home Assistant…): drag the `devices.json` from
+   [tinytuya](https://github.com/jasonacox/tinytuya) onto the window, or enter the key with « + Ajouter » (+ Add).
+3. **The device is new**: the stock Tuya firmware refuses to work without an initial activation
+   through the cloud; no application can get around that. Three options:
+   - a **throwaway account**, just long enough to pair the device and then import its keys (option 1);
+   - [tuya-cloudcutter](https://github.com/tuya-cloudcutter/tuya-cloudcutter), which sets up
+     some models (BK7231 chips with vulnerable firmware) with a key you choose, without ever
+     going through the cloud;
+   - flash an open-source firmware (OpenBeken, ESPHome…): the device then no longer speaks the Tuya
+     protocol, and HomeSmart can no longer control it.
 
-Les clés sont enregistrées en clair dans le fichier de configuration (voir plus bas) : garde-le pour toi.
+The keys are not written to the configuration file: they are kept apart, encrypted, in
+`homesmart.secrets.json` (see "Keys and passwords" below).
 
-## Utilisation
+## Usage
 
-- **+ Ajouter** : identifiant, clé locale, nom et pièce. L'IP et la version de protocole sont
-  détectées automatiquement si l'appareil s'annonce sur le réseau.
-- Un appareil **détecté** mais pas encore configuré apparaît en bas du tableau de bord ; « Ajouter »
-  pré-remplit son identifiant, son IP et sa version.
-- Clique sur une carte pour ouvrir ses commandes, la liste de tous ses DP et ses réglages
-  (renommer, pièce, IP fixe, version, clé, suppression).
-- Le petit « ⚡ 23 ms » sur une carte, c'est le temps mesuré entre ta commande et la confirmation de l'appareil.
+- **+ Ajouter** (+ Add): ID, local key, name and room. The IP and protocol version are
+  detected automatically if the device announces itself on the network.
+- A device that is **detected** but not yet configured appears at the bottom of the dashboard; « Ajouter » (Add)
+  pre-fills its ID, its IP and its version.
+- Click a card to open its controls, the list of all its DPs and its settings
+  (rename, room, static IP, version, key, delete).
+- The small « ⚡ 23 ms » on a card is the time measured between your command and the device's confirmation.
 
-### Protection des réglages de l'appareil
+### Protecting the device's settings
 
-Toute écriture vers une prise passe par les mêmes contrôles, dans l'app comme en ligne de commande :
+Every write to a plug goes through the same checks, in the app as well as on the command line:
 
-- **l'étalonnage d'usine est intouchable** : coefficients de tension, de courant, de puissance et
-  d'énergie (DP 22 à 25 des prises à mesure), bit de test (DP 21). Ils sont affichés en lecture
-  seule, et toute écriture est refusée, même sans description des DP ;
-- **une liste de choix n'accepte que les valeurs que l'appareil connaît.** Exemple réel : tes prises
-  emploient en local `off` / `on` / `memory` pour « Après une coupure de courant », alors que le cloud
-  annonce `power_off` / `power_on` / `last`. HomeSmart utilise le vocabulaire de la prise, et bloque
-  la modification s'il ne le reconnaît pas ;
-- **un nombre doit rester dans la plage prévue** (minuterie de 0 à 86 400 s…).
+- **the factory calibration is off-limits**: voltage, current, power and
+  energy coefficients (DP 22 to 25 on energy-monitoring plugs), test bit (DP 21). They are shown
+  read-only, and any write is refused, even without a DP description;
+- **a choice list only accepts the values the device knows.** A real example: your plugs
+  locally use `off` / `on` / `memory` for « Après une coupure de courant » (After a power cut), while the cloud
+  advertises `power_off` / `power_on` / `last`. HomeSmart uses the plug's vocabulary, and blocks
+  the change if it does not recognize it;
+- **a number must stay within its intended range** (timer from 0 to 86,400 s…).
 
-### Garde-fous (Réglages d'un appareil, partie « Sécurité »)
+### Safeguards (a device's Réglages (Settings), « Sécurité » (Safety) section)
 
-Pour un appareil à risque, comme un chauffage branché sur une prise connectée :
+For a risky device, such as a heater plugged into a smart plug:
 
-| Garde-fou | Où il agit |
+| Safeguard | Where it acts |
 |---|---|
-| Confirmation avant d'allumer depuis HomeSmart | dans l'application |
-| Extinction automatique après une durée maximale | **dans la prise** (sa minuterie), donc même PC éteint, et HomeSmart vérifie aussi |
-| Coupure si la puissance dépasse un seuil (deux mesures de suite) | HomeSmart, à chaque mesure |
-| Plage horaire interdite (allumage refusé, extinction si allumé) | HomeSmart, y compris pour les programmes |
-| Coupure si la prise signale un défaut (surintensité, surtension, surpuissance…) | HomeSmart |
-| Comportement au retour du courant (« Rester éteinte » conseillé) | **dans la prise** |
+| Confirmation before switching on from HomeSmart | in the application |
+| Automatic switch-off after a maximum duration | **in the plug** (its timer), so even with the PC off, and HomeSmart checks too |
+| Cut-off if the power exceeds a threshold (two readings in a row) | HomeSmart, at every reading |
+| Forbidden time window (switch-on refused, switched off if on) | HomeSmart, including for schedules |
+| Cut-off if the plug reports a fault (overcurrent, overvoltage, overpower…) | HomeSmart |
+| Behavior when power comes back (« Rester éteinte » (Stay off) recommended) | **in the plug** |
 
-Un appareil dont le nom évoque du chauffage (« Chauffage », « Radiateur »…) se voit proposer
-des réglages recommandés en un clic. Chaque intervention apparaît dans **Activité**.
-Les coefficients d'étalonnage d'usine des prises sont affichés en lecture seule, et toute
-écriture dessus est refusée.
+A device whose name suggests heating (« Chauffage » (Heating), « Radiateur » (Radiator)…) is offered
+recommended settings in one click. Every intervention appears in **Activité** (Activity).
+The plugs' factory calibration coefficients are shown read-only, and any
+write to them is refused.
 
-### Minuterie
+### Timer
 
-« Éteindre dans… » / « Allumer dans… » (15 min à 24 h) : c'est la prise elle-même qui décompte,
-HomeSmart peut être fermé.
+« Éteindre dans… » (Turn off in…) / « Allumer dans… » (Turn on in…) (15 min to 24 h): the plug itself
+does the countdown, so HomeSmart can be closed.
 
-### Programmes et calendrier
+### Schedules and calendar
 
-Plages (« allumé de 6 h 30 à 8 h en semaine », y compris à cheval sur minuit) ou actions ponctuelles
-(« éteindre à 23 h 30 »), jour par jour. La rubrique **Programmes** montre la semaine type de tous les
-appareils ; un clic sur un bloc le modifie. Les programmes sont exécutés par HomeSmart : il doit
-rester ouvert (même réduit). Active **Préférences › Lancer à l'ouverture de session** pour qu'il
-démarre tout seul, réduit. À la fermeture, HomeSmart propose de se réduire si des programmes ou
-des garde-fous sont actifs. Après une mise en veille du PC, les déclenchements manqués ne sont pas
-rattrapés (pas d'allumage surprise en retard).
+Time ranges ("on from 6:30 to 8:00 on weekdays", including ranges spanning midnight) or one-off actions
+("turn off at 23:30"), day by day. The **Programmes** (Schedules) section shows the typical week of all
+devices; clicking a block edits it. Schedules are run by HomeSmart: it must
+stay open (even minimized). Turn on **Préférences › Lancer à l'ouverture de session** (Preferences › Launch at login)
+so that it starts on its own, minimized. When you close it, HomeSmart offers to minimize itself if schedules or
+safeguards are active. After the PC has been asleep, missed triggers are not
+caught up (no surprise late switch-on).
 
-### Énergie
+### Energy
 
-Les mesures (puissance, courant, tension) sont demandées aux prises **toutes les 2 s** par défaut
-(réglable : 1, 2, 5 ou 10 s dans les préférences). Testé sur une vraie prise : elle fournit bien une
-nouvelle valeur toutes les 2 s. Pour vérifier le rythme d'une prise :
+Readings (power, current, voltage) are requested from the plugs **every 2 s** by default
+(adjustable: 1, 2, 5 or 10 s in the preferences). Tested on a real plug: it does provide a
+new value every 2 s. To check a plug's rate:
 `homesmart-cli watch "Multiprise - Bureau" --interval 2`.
 
-Pour chaque prise à mesure : puissance instantanée, kWh du jour, du mois et du mois précédent,
-coût estimé, courbe de puissance du jour (par tranches de 5 min) et consommation des 14 derniers
-jours. La vue **Énergie** cumule tous les appareils sur 30 jours. Le prix du kWh se règle dans les
-préférences. Les mesures sont intégrées par HomeSmart pendant qu'il est ouvert ; l'historique est
-gardé environ 13 mois dans `energy.json`, à côté de la configuration.
+For each energy-monitoring plug: instantaneous power, kWh for today, this month and last month,
+estimated cost, today's power curve (in 5-min slots) and consumption over the last 14
+days. The **Énergie** (Energy) view adds up all devices over 30 days. The price per kWh is set in the
+preferences. Readings are integrated by HomeSmart while it is open; the history is
+kept for about 13 months in `energy.json`, next to the configuration.
 
-### Journal (rubrique « Activité »)
+### Log (« Activité » (Activity) section)
 
-Chaque action est inscrite, **sans exception**, avec son origine :
+Every action is recorded, **without exception**, with its source:
 
-| Origine | Exemples |
+| Source | Examples |
 |---|---|
-| Toi (app) | allumer, éteindre, minuterie, réglages, programmes, garde-fous, plan de la maison, préférences, refus |
-| Ligne de commande | `on`, `off`, `set`, `add`, `remove`, imports |
-| Programme | allumages et extinctions programmés |
-| Garde-fou | extinctions de sécurité, minuterie de sécurité |
-| Appareil | changement fait ailleurs : bouton physique, autre application, minuterie de la prise ; problèmes signalés par la prise (extinction non demandée, défaut, tension) |
-| Système | démarrage, arrêt, connexions et pertes de connexion, appareils détectés, changement d'IP ; appareil hors ligne, caméra sans image, arrêt brutal du PC |
-| Vision IA | personnes, chutes, gestes, zones, visages, animaux (analyse des caméras) |
-| Écoute IA | sons de la maison, parole transcrite (micro des caméras) |
-| Scénario | appareil commandé par ce que voient ou entendent les caméras, avec la raison |
+| Toi (You, in the app) | switching on, switching off, timer, settings, schedules, safeguards, house plan, preferences, refusals |
+| Ligne de commande (Command line) | `on`, `off`, `set`, `add`, `remove`, imports |
+| Programme (Schedule) | scheduled switch-ons and switch-offs |
+| Garde-fou (Safeguard) | safety switch-offs, safety timer |
+| Appareil (Device) | change made elsewhere: physical button, another app, the plug's timer; problems reported by the plug (unrequested switch-off, fault, voltage) |
+| Système (System) | startup, shutdown, connections and lost connections, detected devices, IP change; device offline, camera with no picture, sudden PC shutdown |
+| Vision IA (AI vision) | people, falls, gestures, zones, faces, animals (camera analysis) |
+| Écoute IA (AI listening) | household sounds, transcribed speech (camera microphones) |
+| Scénario (Scenario) | device controlled by what the cameras see or hear, with the reason |
 
-Les mesures (puissance, tension…) ne sont pas des actions et n'y figurent pas. Un curseur que l'on
-fait glisser donne une seule entrée, avec la valeur finale. Le journal est conservé dans
-`journal.jsonl`, à côté de la configuration ; l'onglet permet de filtrer par niveau, origine,
-appareil et texte. Les notifications ne s'affichent que pour ce qui mérite ton attention
-(programmes, garde-fous, scénarios, avertissements), pas pour tes propres clics. Les **alertes
-critiques** (chute, personne au sol, appel à l'aide, alarme incendie, verre brisé…) donnent en plus
-une **notification du système** (Windows ou Linux), même fenêtre réduite ; désactivable dans les
-Préférences.
+Readings (power, voltage…) are not actions and do not appear there. Dragging a slider
+produces a single entry, with the final value. The log is kept in
+`journal.jsonl`, next to the configuration; the tab lets you filter by level, source,
+device and text. Notifications only appear for things that deserve your attention
+(schedules, safeguards, scenarios, warnings), not for your own clicks. **Critical
+alerts** (fall, person on the floor, call for help, fire alarm, broken glass…) also trigger
+a **system notification** (Windows or Linux), even with the window minimized; this can be turned off in
+Préférences (Preferences).
 
-### Problèmes (détection de ce qui n'a pas été demandé)
+### Problems (detecting what was not requested)
 
-La rubrique **Problèmes** montre ce qui arrive en ce moment, avec la cause probable, puis
-l'historique de la semaine. Sur **Maison**, un bandeau les résume et la tuile concernée prend la
-couleur de la gravité ; le panneau de l'appareil les détaille. Chaque problème va au **journal**
-avec son origine et sa gravité, écrit tout de suite sur le disque (il doit survivre à la coupure
-qu'il annonce), et sa fin aussi (« Résolu — … »). Les problèmes **graves** donnent une notification
-du système (Préférences › notifications).
+The **Problèmes** (Problems) section shows what is happening right now, with the likely cause, then
+the week's history. On **Maison** (Home), a banner summarizes them and the affected tile takes on the
+color of the severity; the device's panel gives the details. Each problem goes to the **log**
+with its source and severity, written to disk immediately (it has to survive the power cut
+it announces), and so does its end (« Résolu — … » (Resolved — …)). **Serious** problems trigger a system
+notification (Préférences › notifications (Preferences › notifications)).
 
-| Problème | Comment HomeSmart le reconnaît | Gravité |
+| Problem | How HomeSmart recognizes it | Severity |
 |---|---|---|
-| Extinction / allumage non demandés | la prise change d'état sans commande de HomeSmart (toi, programme, garde-fou, scénario, minuterie posée par HomeSmart, ligne de commande) | avertissement ; **grave** pour un allumage d'appareil sous garde-fous (chauffage) ; information si c'est une minuterie réglée ailleurs |
-| … avec sa cause probable | bouton de la prise ou autre application ; minuterie de la prise réglée hors de HomeSmart ; **coupure de courant** (revenue éteinte après une perte de liaison, selon « Après une coupure de courant », DP 38) ; protection (DP 26) | |
-| Hors ligne | plus de liaison depuis 1 min ; cause : réseau de ce PC coupé, tous les appareils perdus en même temps (box, Wi-Fi), ou prise débranchée | avertissement ; **grave** si un chauffage allumé n'a plus de minuterie de sécurité |
-| Redémarrage de la prise | revenue après une perte de liaison avec sa minuterie à zéro (le garde-fou la reprogramme) | avertissement |
-| Défaut signalé | bits du DP 26 : surintensité, surtension, surpuissance (**grave**), sous-tension (avertissement), sous-intensité (information) | |
-| Tension anormale | mesure du DP 20 hors de ± 10 % (230 V ou 120 V, reconnu tout seul) trois fois de suite, ou ± 15 % une fois | avertissement ; **grave** au-delà de + 15 % |
-| Consommation inhabituelle | allumé depuis 15 min sans jamais atteindre sa puissance habituelle (historique `energy.json`) : le chauffage allumé qui ne tire que 25 W au lieu de 1 200 W. Un radiateur dont le thermostat coupe **après** avoir chauffé n'est pas signalé | information |
-| Caméra injoignable / flux vidéo perdu | plus de réponse depuis 1 min, ou plus d'image depuis 20 s alors que le flux est demandé | avertissement |
-| Analyse IA / écoute arrêtées | en erreur depuis 30 s | avertissement ; **grave** si la caméra surveillait les chutes, les appels à l'aide ou le mode absence |
-| Arrêt brutal de ce PC | au démarrage, d'après le journal de Windows (démarrages, événements Kernel-Power 41 et 6008 : heure exacte, ni écran bleu, ni appui sur le bouton) : coupure pendant que HomeSmart tournait, ou coupures survenues HomeSmart fermé ; HomeSmart cite le creux de tension signalé juste avant, la dernière minute de mesures des prises et la prise qui alimente ce PC | avertissement |
+| Extinction / allumage non demandés (Unrequested switch-off / switch-on) | the plug changes state without a command from HomeSmart (you, schedule, safeguard, scenario, timer set by HomeSmart, command line) | warning; **serious** for a switch-on of a device under safeguards (heater); information if it is a timer set elsewhere |
+| … with its likely cause | the plug's button or another app; the plug's timer set outside HomeSmart; **power cut** (came back off after a lost link, according to « Après une coupure de courant » (After a power cut), DP 38); protection (DP 26) | |
+| Hors ligne (Offline) | no link for 1 min; cause: this PC's network down, all devices lost at the same time (router, Wi-Fi), or plug unplugged | warning; **serious** if a heater that is on no longer has a safety timer |
+| Redémarrage de la prise (Plug restart) | came back after a lost link with its timer at zero (the safeguard reprograms it) | warning |
+| Défaut signalé (Fault reported) | DP 26 bits: overcurrent, overvoltage, overpower (**serious**), undervoltage (warning), undercurrent (information) | |
+| Tension anormale (Abnormal voltage) | DP 20 reading outside ±10% (230 V or 120 V, detected automatically) three times in a row, or ±15% once | warning; **serious** above +15% |
+| Consommation inhabituelle (Unusual consumption) | on for 15 min without ever reaching its usual power (`energy.json` history): the heater that is on but draws only 25 W instead of 1,200 W. A radiator whose thermostat cuts out **after** heating up is not flagged | information |
+| Caméra injoignable / flux vidéo perdu (Camera unreachable / video stream lost) | no response for 1 min, or no picture for 20 s while the stream is requested | warning |
+| Analyse IA / écoute arrêtées (AI analysis / listening stopped) | in error for 30 s | warning; **serious** if the camera was watching for falls, calls for help or away mode |
+| Arrêt brutal de ce PC (Sudden shutdown of this PC) | at startup, from the Windows event log (boots, Kernel-Power 41 and 6008 events: exact time, neither a blue screen nor a press of the power button): power cut while HomeSmart was running, or power cuts that happened while HomeSmart was closed; HomeSmart mentions the voltage dip reported just before, the last minute of plug readings and the plug that powers this PC | warning |
 
-Un événement (extinction non demandée…) reste « en cours » jusqu'à ce que tu cliques sur
-**Compris** (24 h au plus) ; un état (hors ligne, tension…) disparaît de lui-même quand tout
-redevient normal. La simple perte de connexion, aussitôt rétablie, n'est qu'une information.
+An event (unrequested switch-off…) stays « en cours » (ongoing) until you click
+**Compris** (Got it), for 24 h at most; a state (offline, voltage…) clears by itself when everything
+is back to normal. A mere loss of connection, restored right away, is only information.
 
-**Une prise qui alimente ce PC** (Réglages de l'appareil › « Alimente ce PC ») : quand elle coupe,
-HomeSmart s'arrête avec le PC et ne peut rien écrire à ce moment-là. Il garde donc en permanence,
-toutes les 5 s, une « boîte noire » : la dernière minute de puissance et de tension de chaque prise.
-Au démarrage suivant, il dit ce qui s'est passé : « ce PC a perdu son alimentation à 20:42:31
+**A plug that powers this PC** (the device's Réglages (Settings) › « Alimente ce PC » (Powers this PC)): when it cuts out,
+HomeSmart stops along with the PC and cannot write anything at that moment. So it constantly keeps,
+every 5 s, a "black box": the last minute of power and voltage for each plug.
+On the next startup, it tells you what happened: « ce PC a perdu son alimentation à 20:42:31
 pendant que HomeSmart tournait : Windows a redémarré à 20:50 sans arrêt normal (3 coupures en
 24 h) ; juste avant, « Chauffage » a signalé une sous-tension à 20:42:09 ; dernières mesures :
 « Multiprise - Bureau » 290 W et 240 V à 20:42:26 ; si la prise qui l'alimente s'est éteinte puis
 rallumée seule, elle a redémarré ; s'il a fallu appuyer sur son bouton, elle a reçu un ordre
-d'extinction ; si son voyant est resté allumé, c'est ce PC lui-même qui s'est arrêté ».
-Réglée sur « Rester éteinte » au retour du courant, la prise ne permet pas de trancher entre les
-deux : « Reprendre l'état précédent » le permet. Les coupures survenues pendant que HomeSmart était
-fermé sont dites aussi, avec leur heure exacte (Windows ; sous Linux, seulement si un creux de
-tension a été vu juste avant).
+d'extinction ; si son voyant est resté allumé, c'est ce PC lui-même qui s'est arrêté » (this PC lost
+power at 20:42:31 while HomeSmart was running: Windows restarted at 20:50 without a normal shutdown
+(3 power cuts in 24 h); just before, "Chauffage" reported an undervoltage at 20:42:09; last readings:
+"Multiprise - Bureau" 290 W and 240 V at 20:42:26; if the plug that powers it switched off and then back
+on by itself, it restarted; if its button had to be pressed, it received a switch-off command; if its
+LED stayed on, it is this PC itself that shut down).
+When set to « Rester éteinte » (Stay off) for when power comes back, the plug cannot tell the
+two apart: « Reprendre l'état précédent » (Restore previous state) can. Power cuts that happened while HomeSmart was
+closed are reported too, with their exact time (Windows; on Linux, only if a voltage
+dip was seen just before).
 
-En démo (`--demo`), la rubrique propose de **simuler chaque panne** sur les appareils simulés
-(bouton, coupure de courant, sous-tension, creux de tension, chauffage qui ne chauffe pas, caméra
-sans image, arrêt brutal du PC) ; les délais y sont raccourcis à quelques secondes.
+In demo mode (`--demo`), the section offers to **simulate each failure** on the simulated devices
+(button, power cut, undervoltage, voltage dip, heater that does not heat, camera
+with no picture, sudden PC shutdown); delays there are shortened to a few seconds.
 
-### Maison 3D
+### 3D house
 
-Bouton **Plan 3D** (en haut de la page Maison), choix **Plan** : crée tes pièces (automatiquement à partir des pièces de tes appareils, ou à la
-main), déplace-les, redimensionne-les par leur coin, et glisse chaque appareil à sa place ; sa
-pièce est mise à jour en conséquence. Onglet **Maquette 3D** : la maison en volume. Glisser pour
-tourner (avec inertie), molette pour zoomer, clic sur un appareil pour ouvrir ses commandes. Les
-appareils allumés brillent de leur couleur, avec leur état ou leur consommation au-dessus.
-- **Présence en direct** : une pièce où une caméra analysée voit quelqu'un s'éclaire en vert, avec une
-  silhouette par personne et le compte (« 2 personnes ») ; une pièce surveillée mais vide affiche
-  « vide · surveillée ». Il suffit que la caméra et la pièce du plan portent le même nom.
+**Plan 3D** (3D plan) button (at the top of the Maison (Home) page), **Plan** (Floor plan) option: create your rooms (automatically from your devices' rooms, or by
+hand), move them, resize them by their corner, and drag each device into place; its
+room is updated accordingly. **Maquette 3D** (3D model) tab: the house in three dimensions. Drag to
+rotate (with inertia), scroll wheel to zoom, click a device to open its controls. Devices
+that are on glow in their color, with their state or their consumption above them.
+- **Live presence**: a room where an analyzed camera sees someone lights up in green, with one
+  silhouette per person and the count (« 2 personnes » (2 people)); a room that is monitored but empty shows
+  « vide · surveillée » (empty · monitored). All it takes is for the camera and the plan's room to have the same name.
 
-### Graphiques
+### Charts
 
-Rubrique **Énergie** et page « Consommation » de chaque prise : jour (par heure), semaine et mois
-(par jour), année (par mois). En tête, ce que la période a coûté en euros et les kWh ; un bâton
-par intervalle (survol : le détail en kWh et en €) ; « Ce qui consomme » classe les appareils.
+The **Énergie** (Energy) section and each plug's « Consommation » (Consumption) page: day (by hour), week and month
+(by day), year (by month). At the top, what the period cost in euros and the kWh; one bar
+per interval (hover: the detail in kWh and €); « Ce qui consomme » (What uses power) ranks the devices.
+### Cameras
 
-### Caméras
+The **Caméras** (Cameras) section. Video goes straight from the camera to the PC (RTSP) and is decoded
+on the spot (OpenH264); pan/tilt and preset positions go through ONVIF. No account, no cloud.
 
-Rubrique **Caméras**. La vidéo va directement de la caméra au PC (RTSP), elle est décodée sur place
-(OpenH264) ; l'orientation et les positions passent par ONVIF. Aucun compte, aucun cloud.
+- **Search**: HomeSmart finds cameras through Dahua / Imou discovery (model, serial number, MAC,
+  firmware), TP-Link discovery (Tapo cameras and their model), ONVIF WS-Discovery and by probing the
+  RTSP port, and HomeSmart cameras (DIY) through mDNS. A camera that answers on two addresses
+  (Dahua / Imou cameras keep their factory IP 192.168.1.108) appears only once.
+- **Tapo (TP-Link)**: locally, a Tapo does not accept the TP-Link account password. It needs a
+  **camera account**, created once in the Tapo app (the camera, Settings, Advanced Settings, Camera
+  Account); until that account exists, the camera keeps its video (RTSP, port 554) and its pan/tilt
+  (ONVIF, port 2020) closed, and HomeSmart says so. After that, everything runs locally, even
+  without Internet. The add form adjusts itself for a Tapo (ONVIF port 2020, account name requested,
+  help shown). What stays tied to TP-Link: the camera's internal settings (Wi-Fi, privacy mode, SD
+  card), updates (better to turn off automatic updates: a new version can close local access) and a
+  reset. You can block the camera's Internet access in your router: HomeSmart still sees it.
+  - **Tapo local API** (alarm, motion tracking, SD card): these settings go through a different
+    channel than the camera account — the **encrypted local API** (HTTPS, port 443), which only
+    accepts the `admin` user with the **TP-Link account password** (the one used in the Tapo app).
+    The camera checks it itself, without Internet; HomeSmart keeps only its hashes (MD5 and
+    SHA-256), never the password. It is entered in the « Caméra Tapo » (Tapo camera) section of the
+    settings (or `cam tapo`). The most recent firmwares ("TPAP" connection) are not supported yet:
+    HomeSmart says so. Since every password attempt counts toward the camera's lockout, a rejection
+    blocks any new automatic attempt for 15 minutes.
+- **Cameras without continuous movement** (some Tapo models): if the camera rejects ONVIF continuous
+  panning, HomeSmart notes it once in the log and turns the camera in repeated **small steps** as
+  long as the control is held (5% of the travel every 0.3 s, at most 20 s without a new command);
+  automatic tracking benefits from this too.
+- **Adding**: the IP address and, for an Imou, the **safety code**: the 8 characters after "SC" on
+  the label under the camera (user `admin`). « Tester la connexion » (Test connection) checks the
+  video and ONVIF before saving.
+- **Grid view** in the smooth stream; click a camera to open it.
+- **An open camera**: the video, with five round buttons overlaid on it (snapshot, sound —
+  right-click for the volume —, preset positions, HD, video only); next to it, the **Surveillance**
+  (Monitoring) panel, and its pages « Avancé » (Advanced: all of the AI vision) and « Réglages de la
+  caméra » (Camera settings: pan/tilt, sound, image, video quality, name and connection, technical
+  information). In a narrow window, the panel moves below the video.
+- **Pan/tilt**: a circular pad sits in the corner of the video; press in a direction and hold (the
+  keyboard arrows work too); the center returns to the home position.
+  **Preset positions**:
+  click to go there, right-click to delete, « Mémoriser ici » (Save here) to create one. HomeSmart
+  detects what the camera supports: over ONVIF, the Imou Ranger 2C only accepts continuous panning
+  (no preset positions and no home position), so those controls are hidden.
+- **Zoom** (digital): scroll wheel on the video to zoom toward the point under the cursor (up to
+  8×), drag to move around, double-click or « 1× » to go back to the whole image; a small map in the
+  top-left corner shows the displayed area. Beyond 1.5×, the live view switches to HD on its own to
+  stay sharp (noted in the log) and goes back to the smooth stream at 1×. Display only: the camera
+  is not controlled. Also works during playback of recordings; AI vision zones and boxes follow.
+- **Video quality**: resolution, frame rate and bitrate of each stream, within the limits advertised
+  by the camera (Ranger 2C: up to 2304×1296 at 25 fps; Tapo C210: 2304×1296 at 30 fps). Caution:
+  saving an H.265 stream through ONVIF switches it to H.264. Bitrate: common values in one click
+  (512 kbit/s to 8 Mbit/s) or an exact value. Many cameras do not advertise their maximum bitrate and
+  cap it without saying so: HomeSmart reads the setting back after sending it and reports what the
+  camera kept. The **Tapo C210** accepts resolution changes over ONVIF but keeps its frame rate and
+  bitrate fixed (already at the maximum, 2304×1296 at 30 fps): HomeSmart reports it.
+- **Tamper detection** (lens covered, camera turned away, blurred image), through either of two
+  methods, which can be combined (« Détection de sabotage » (Tamper detection) section of the
+  settings, or `cam tamper`):
+  - **the image in HomeSmart**: a few measurements per second on the smooth stream (field of view
+    turned uniform, details gone, scene completely changed), with no AI model and no graphics card;
+    the reference view is relearned when the camera is panned or tilted;
+  - **the camera's alerts** (ONVIF): the camera reports tampering itself, with nothing decoded on
+    the PC. The Tapo C210 has a built-in detector that HomeSmart turns on for it; the Imou
+    Ranger 2C has no adjustable one but emits a "scene change" event that serves as an alert.
+  - Adjustable sensitivity (low, medium, high). An alert goes to the **log**, to **Problems** and to
+    **Scenarios** (trigger « un sabotage de caméra » (a camera tampering)).
+- **Alarm** (Tapo): the camera's siren and light. Turn on the automatic alarm (triggered by the
+  camera's own detection), choose siren and/or light, the volume and the duration, or **trigger /
+  stop it right away**. Through the « Caméra Tapo » section or `cam alarm`.
+- **Motion tracking** (Tapo): the tracking **built into** the camera (it pans by itself to follow
+  whatever moves), which can be turned on in « Caméra Tapo » or `cam track`. Not to be confused with
+  tracking by **HomeSmart's AI** (Vision tab, `cam follow`), which steers the camera over ONVIF.
+- **Performance**: the video pipeline handles 2560×1440 at 60 fps without dropping frames (decoding
+  ≈ 4.5 ms per frame on one core); the detailed view shows the received frame rate and the displayed
+  frame rate.
+- **Lockout**: after several wrong passwords, an Imou blocks access for a few minutes (RTSP 403).
+  So HomeSmart never retries on its own after its credentials are rejected: it waits for a click on
+  « Réessayer » (Retry) or a change of settings (after a lockout, a single automatic attempt after
+  10 min). Several simultaneous viewing sessions, on the other hand, are accepted.
+- **Image**: brightness, contrast, saturation, sharpness, plus night vision, WDR (the cameras' "HDR")
+  and backlight compensation **if the camera offers them over ONVIF**. The Ranger 2C only exposes
+  the first four: its WDR cannot be adjusted locally.
+- **Snapshot**: PNG in `Images\HomeSmart` (« Dossier » (Folder) button to open it).
+- **Recordings** (« Direct / Enregistrements » (Live / Recordings) toggle at the top of the detailed
+  view): playback of the camera's SD card, read-only.
+  - Strip of the last 7 days (blue dot = there is video), summary of the day (number of recordings,
+    total video duration).
+  - **Timeline** of the day: each recording in its place, to the second; scroll wheel to zoom (down
+    to 5 min), drag to move around, hover for the exact time, click to play back from that point;
+    « Ajuster » (Fit: frames the recordings) and « Journée » (Day) buttons.
+  - **Recording list** (most recent at the top, grouped by hour) with thumbnail, time, duration.
+  - **Continuous playback**: from one recording to the next with no wait (the camera skips the
+    gaps), time of the displayed frame always shown, pause (`Espace` (Space) or click on the image),
+    previous / next recording (`←` `→`).
+  - **Sound** of the recording (speaker button or `S`, volume next to it): the microphone audio
+    recorded with the image, synced to it, over the same connection to the camera. Listening stays
+    on from one recording to the next and stops when you leave the view; a silent recording is
+    flagged.
+  - **Export** of the recording to `.mp4` (H.265 + sound, no re-encoding; G.711 sound, which .mp4
+    does not accept, is converted to AAC) into `Vidéos\HomeSmart`, with progress and an
+    « Annuler » (Cancel) button. The camera streams in real time: expect the export to take as
+    long as the recording.
+  - Formatting, retention and recording mode of the card go through an interface that the
+    Ranger 2C locks: they remain out of reach locally.
+  - **Tapo**: the camera provides the **index** of its SD card (days and recordings, through its
+    local API), shown in the list. But **playing and exporting** those recordings go through a
+    proprietary, encrypted playback stream that HomeSmart cannot open: on a Tapo, only the index is
+    available (no playback, no export). Two-way talk (speaking through the camera's speaker) goes
+    through that same stream and is therefore not possible either.
+- The stream is only open while it is displayed; leaving the tab closes it after 2-3 s. When idle,
+  HomeSmart only checks once a minute that the camera responds.
+- An HD stream in **H.265** (as on Imou cameras) is decoded with **FFmpeg**. If FFmpeg is missing,
+  HomeSmart shows the smooth stream and offers, below the video and in Préférences (Preferences), an
+  **« Installer FFmpeg »** (Install FFmpeg) button: official `Gyan.FFmpeg` package via winget, no
+  administrator rights, about one minute, progress shown; the camera then switches back to HD on
+  its own. On Linux, the command to run is offered (« Copier » (Copy) button). FFmpeg can also be
+  placed next to `HomeSmart.exe`. From the command line: `homesmart-cli cam ffmpeg --install`.
+- Everything is logged: opening and closing of the live view (with its duration), pan/tilt moves,
+  positions, snapshots, tests, settings (the password itself is never written), camera unreachable.
+- **Sound**: AAC, G.711, and lossless 16-bit PCM (L16, the one used by HomeSmart cameras).
 
-- **Recherche** : HomeSmart trouve les caméras par la découverte Dahua / Imou (modèle, n° de série,
-  MAC, firmware), par la découverte TP-Link (caméras Tapo et leur modèle), par WS-Discovery ONVIF et
-  en sondant le port RTSP, et les caméras HomeSmart fabriquées soi-même par mDNS. Une caméra qui
-  répond sur deux adresses (les Dahua / Imou gardent leur IP d'usine 192.168.1.108) n'apparaît
-  qu'une fois.
-- **Tapo (TP-Link)** : en local, une Tapo n'accepte pas le mot de passe du compte TP-Link. Il lui
-  faut un **compte de la caméra**, à créer une fois dans l'application Tapo (la caméra, Paramètres,
-  Paramètres avancés, Compte de la caméra) ; tant qu'il n'existe pas, elle garde sa vidéo (RTSP,
-  port 554) et son orientation (ONVIF, port 2020) fermées, et HomeSmart le dit. Ensuite tout passe
-  en local, même sans Internet. Le formulaire d'ajout se règle tout seul pour une Tapo (port ONVIF
-  2020, nom du compte demandé, aide affichée). Il reste lié à TP-Link : les réglages internes de la
-  caméra (Wi-Fi, mode privé, carte SD), les mises à jour (mieux vaut couper la mise à jour
-  automatique : une version peut fermer l'accès local) et une réinitialisation. On peut bloquer
-  l'accès Internet de la caméra dans la box : HomeSmart continue de la voir.
-  - **API locale Tapo** (alarme, suivi des mouvements, carte SD) : ces réglages passent par une
-    autre voie que le compte de la caméra — l'**API locale chiffrée** (HTTPS, port 443), qui
-    n'accepte que l'utilisateur `admin` avec le **mot de passe du compte TP-Link** (celui de
-    l'application Tapo). La caméra le vérifie elle-même, sans Internet ; HomeSmart n'en garde que
-    les empreintes (MD5 et SHA-256), jamais le mot de passe. Il se renseigne dans la section
-    « Caméra Tapo » des réglages (ou `cam tapo`). Les firmwares les plus récents (connexion
-    « TPAP ») ne sont pas encore gérés : HomeSmart le dit. Chaque essai de mot de passe comptant
-    pour le verrouillage de la caméra, un refus bloque tout nouvel essai automatique 15 minutes.
-- **Caméras sans mouvement continu** (certaines Tapo) : si la caméra refuse le pivotement continu
-  ONVIF, HomeSmart le note une fois au journal et la tourne par **petits pas** répétés tant que la
-  commande est maintenue (5 % de la course toutes les 0,3 s, 20 s au plus sans nouvel ordre) ; le
-  suivi automatique en profite aussi.
-- **Ajout** : l'adresse IP et, pour une Imou, le **code de sécurité** : 8 caractères après « SC » sur
-  l'étiquette sous la caméra (utilisateur `admin`). « Tester la connexion » vérifie la vidéo et ONVIF
-  avant d'enregistrer.
-- **Mosaïque** en flux fluide ; clic sur une caméra pour l'ouvrir.
-- **Une caméra ouverte** : la vidéo, avec cinq boutons ronds posés dessus (capture, son — clic
-  droit pour le volume —, positions mémorisées, HD, vidéo seule) ; à côté, le panneau
-  **Surveillance**, et ses pages « Avancé » (toute la vision IA) et « Réglages de la caméra »
-  (orientation, son, image, qualité vidéo, nom et connexion, informations techniques). Dans une
-  fenêtre étroite, le panneau passe sous la vidéo.
-- **Orientation** : pavé circulaire posé dans le coin de la vidéo, on appuie dans une direction et
-  on maintient (les flèches du clavier marchent aussi) ; le centre ramène à la position d'origine.
-  **Positions mémorisées** :
-  clic pour y aller, clic droit pour supprimer, « Mémoriser ici » pour en créer une. HomeSmart
-  détecte ce que la caméra gère : l'Imou Ranger 2C n'accepte en ONVIF que le pivotement continu
-  (ni positions mémorisées ni position d'origine), ces commandes sont alors masquées.
-- **Zoom** (numérique) : molette sur la vidéo pour zoomer vers le point visé (jusqu'à 8×), glisser
-  pour se déplacer, double-clic ou « 1× » pour revenir à l'image entière ; une petite carte en haut
-  à gauche montre la partie affichée. Au-delà de 1,5×, le direct passe tout seul en HD pour rester
-  net (noté au journal) et revient au flux fluide à 1×. Simple affichage : la caméra n'est pas
-  commandée. Marche aussi en relecture des enregistrements ; zones et cadres de la vision IA suivent.
-- **Qualité vidéo** : résolution, cadence et débit de chaque flux, dans les limites annoncées par
-  la caméra (Ranger 2C : jusqu'à 2304×1296 à 25 i/s ; Tapo C210 : 2304×1296 à 30 i/s). Attention :
-  un flux en H.265 enregistré par ONVIF passe en H.264. Débit : valeurs courantes en un clic
-  (512 kbit/s à 8 Mbit/s) ou valeur exacte. Beaucoup de caméras n'annoncent pas leur débit maximal
-  et plafonnent sans le dire : HomeSmart relit le réglage après l'avoir envoyé et signale ce que la
-  caméra a gardé. La **Tapo C210** accepte le changement de résolution en ONVIF mais garde sa
-  cadence et son débit figés (déjà au maximum, 2304×1296 à 30 i/s) : HomeSmart le signale.
-- **Détection de sabotage** (objectif masqué, caméra détournée, image floutée), au choix par deux
-  voies, combinables (section « Détection de sabotage » des réglages, ou `cam tamper`) :
-  - **l'image dans HomeSmart** : quelques mesures par seconde sur le flux fluide (champ devenu
-    uniforme, détails disparus, scène entièrement changée), sans aucun modèle d'IA ni carte
-    graphique ; la vue de référence se réapprend quand la caméra est orientée ;
-  - **les alertes de la caméra** (ONVIF) : la caméra signale elle-même le sabotage, sans rien
-    décoder sur le PC. La Tapo C210 a un détecteur intégré que HomeSmart active pour elle ; l'Imou
-    Ranger 2C n'en a pas de réglable mais émet un « changement de scène » qui sert d'alerte.
-  - Sensibilité réglable (faible, moyenne, élevée). Une alerte va au **journal**, aux **problèmes**
-    et aux **scénarios** (déclencheur « un sabotage de caméra »).
-- **Alarme** (Tapo) : sirène et lumière de la caméra. Activer l'alarme automatique (sur la
-  détection de la caméra), choisir sirène et/ou lumière, le volume et la durée, ou la **déclencher
-  / arrêter tout de suite**. Via la section « Caméra Tapo » ou `cam alarm`.
-- **Suivi des mouvements** (Tapo) : le suivi **intégré** à la caméra (elle pivote seule pour suivre
-  ce qui bouge), activable dans « Caméra Tapo » ou `cam track`. À ne pas confondre avec le suivi par
-  l'**IA de HomeSmart** (onglet Vision, `cam follow`), qui oriente la caméra en ONVIF.
-- **Performances** : la chaîne vidéo tient 2560×1440 à 60 i/s sans perte (décodage ≈ 4,5 ms par
-  image sur un cœur) ; la vue détaillée affiche la cadence reçue et la cadence affichée.
-- **Verrouillage** : après plusieurs mots de passe erronés, une Imou bloque l'accès quelques
-  minutes (RTSP 403). HomeSmart ne réessaie donc jamais tout seul après un refus d'identifiants :
-  il attend un clic sur « Réessayer » ou un changement de réglages (après un verrouillage, un seul
-  essai automatique au bout de 10 min). Plusieurs lectures simultanées, elles, sont acceptées.
-- **Image** : luminosité, contraste, saturation, netteté, et vision de nuit, WDR (le « HDR » des
-  caméras) et contre-jour **si la caméra les propose en ONVIF**. La Ranger 2C ne publie que les
-  quatre premiers : son WDR ne se règle pas en local.
-- **Capture** : PNG dans `Images\HomeSmart` (bouton « Dossier » pour l'ouvrir).
-- **Enregistrements** (bascule « Direct / Enregistrements » en haut de la vue détaillée) : relecture
-  de la carte SD de la caméra, en lecture seule.
-  - Bande des 7 derniers jours (point bleu = il y a de la vidéo), résumé du jour (nombre de
-    séquences, durée totale de vidéo).
-  - **Frise** de la journée : chaque séquence à sa place, à la seconde près ; molette pour zoomer
-    (jusqu'à 5 min), glisser pour se déplacer, survol pour l'heure exacte, clic pour relire à
-    partir de là ; boutons « Ajuster » (cadre sur les séquences) et « Journée ».
-  - **Liste des séquences** (la plus récente en haut, par heure) avec vignette, heure, durée.
-  - **Relecture continue** : d'une séquence à l'autre sans attente (la caméra saute les trous),
-    heure de l'image affichée en permanence, pause (`Espace` ou clic sur l'image), séquence
-    précédente / suivante (`←` `→`).
-  - **Son** de la séquence (bouton haut-parleur ou `S`, volume à côté) : le micro enregistré avec
-    l'image, calé sur elle, sur la même connexion à la caméra. L'écoute reste active d'une
-    séquence à l'autre et se coupe quand on quitte la vue ; une séquence muette est signalée.
-  - **Export** de la séquence en `.mp4` (H.265 + son, sans ré-encodage ; un son G.711, que le
-    .mp4 refuse, est converti en AAC) dans `Vidéos\HomeSmart`, avec progression et bouton « Annuler ». La caméra diffuse à vitesse réelle : compter la durée
-    de la séquence.
-  - Formatage, rétention et mode d'enregistrement de la carte passent par une interface que la
-    Ranger 2C verrouille : ils restent hors de portée en local.
-  - **Tapo** : la caméra donne l'**index** de sa carte SD (jours et séquences, par son API locale),
-    affiché dans la liste. Mais la **lecture et l'export** de ces séquences passent par un flux de
-    relecture propriétaire et chiffré, que HomeSmart ne sait pas ouvrir : sur une Tapo, seul l'index
-    est disponible (pas de relecture ni d'export). La parole à distance (parler par le haut-parleur
-    de la caméra) passe par ce même flux et n'est donc pas possible non plus.
-- Le flux n'est ouvert que tant qu'il est affiché ; quitter l'onglet le ferme au bout de 2-3 s. Au
-  repos, HomeSmart vérifie seulement une fois par minute que la caméra répond.
-- Un flux HD en **H.265** (c'est le cas des Imou) se décode avec **FFmpeg**. S'il manque,
-  HomeSmart affiche le flux fluide et propose, sous la vidéo et dans les Préférences, un bouton
-  **« Installer FFmpeg »** : paquet officiel `Gyan.FFmpeg` via winget, sans droits administrateur,
-  environ une minute, progression affichée ; la caméra repasse en HD toute seule ensuite. Sous
-  Linux, la commande à lancer est proposée (bouton « Copier »). FFmpeg peut aussi être posé à côté
-  de `HomeSmart.exe`. En ligne de commande : `homesmart-cli cam ffmpeg --install`.
-- Tout est journalisé : ouverture et fermeture du direct (avec la durée), orientations, positions,
-  captures, tests, réglages (le mot de passe lui-même n'est jamais écrit), caméra injoignable.
-- **Son** : AAC, G.711, et PCM 16 bits sans perte (L16, celui des caméras HomeSmart).
+### HomeSmart camera (DIY)
 
-### Caméra HomeSmart (fabriquée soi-même)
+A 4K camera with a microphone, to build yourself (≈ €90 to €110 in parts: Radxa ROCK 4D + Camera 4K
+Sony IMX415 + USB or I²S microphone), whose software is entirely open and which talks only to
+HomeSmart. Full guide (hardware, installation, security, trying it without hardware):
+[`cam/README.md`](cam/README.md).
 
-Une caméra 4K avec micro, à construire (≈ 90 à 110 € de pièces : Radxa ROCK 4D + Camera 4K Sony
-IMX415 + micro USB ou I²S), dont tout le logiciel est ouvert et qui ne parle qu'à HomeSmart. Guide
-complet (matériel, installation, sécurité, essai sans matériel) : [`cam/README.md`](cam/README.md).
-
-- Sur la caméra, l'agent **`homesmart-cam`** lance le serveur RTSP (MediaMTX) et la chaîne
-  d'encodage matériel : flux **HD** jusqu'en 4K (H.265 ou H.264) et flux **fluide** 720p H.264
-  pour l'analyse IA, avec le **micro en PCM 16 bits à 16 kHz** (sans perte, au format de l'écoute).
-- **Ajout** : HomeSmart la trouve tout seul (mDNS) ; on tape le **code d'appairage** donné à
-  l'installation (« ABCD-EFGH »). Le code ne passe jamais sur le réseau (SPAKE2), chaque requête
-  ensuite est signée, et le mot de passe RTSP est dérivé du secret né de l'appairage. Après 5 codes
-  faux, la caméra refuse les essais 10 minutes.
-- **Réglages de la caméra** : état (encodage, température, relances), définition, cadence, débit
-  et codec des deux flux, micro et son gain, image retournée (caméra au plafond). Pas d'ONVIF :
-  tout passe par l'agent, et tout est journalisé.
-- **Supprimer** la caméra de HomeSmart lui fait oublier ce HomeSmart.
-- En ligne de commande : `homesmart-cli cam pair <IP> <CODE>`, `homesmart-cli cam agent <caméra>`
+- On the camera, the **`homesmart-cam`** agent runs the RTSP server (MediaMTX) and the hardware
+  encoding pipeline: **HD** stream up to 4K (H.265 or H.264) and **smooth** 720p H.264 stream for AI
+  analysis, with the **microphone in 16-bit PCM at 16 kHz** (lossless, in the format AI listening
+  uses).
+- **Adding**: HomeSmart finds it on its own (mDNS); you type the **pairing code** given during
+  installation ("ABCD-EFGH"). The code never goes over the network (SPAKE2), every request after
+  that is signed, and the RTSP password is derived from the secret created by the pairing. After 5
+  wrong codes, the camera refuses attempts for 10 minutes.
+- **Réglages de la caméra** (Camera settings): status (encoding, temperature, restarts), resolution,
+  frame rate, bitrate and codec of both streams, microphone and its gain, flipped image
+  (ceiling-mounted camera). No ONVIF: everything goes through the agent, and everything is logged.
+- Removing the camera from HomeSmart with **Supprimer** (Delete) makes the camera forget that
+  HomeSmart.
+- From the command line: `homesmart-cli cam pair <IP> <CODE>`, `homesmart-cli cam agent <camera>`
   (`--res 4k --fps 25 --codec h265 --mic off --gain 6 --rotate on`).
 
-### Prises et ampoules TP-Link (Tapo, Kasa)
+### TP-Link plugs and bulbs (Tapo, Kasa)
 
-En ligne de commande pour l'instant (`homesmart-cli tplink`) :
+Command line only for now (`homesmart-cli tplink`):
 
-- `tplink scan` : les appareils TP-Link du réseau (découverte UDP 20002 des appareils récents, UDP
-  9999 des anciennes Kasa) : modèle, MAC, protocole, et « pas encore installé » pour un appareil
-  d'usine.
-- `tplink info|on|off <IP>`, `tplink brightness <IP> <%>` : les prises et ampoules **Tapo** (et Kasa
-  récentes) parlent **KLAP**, un protocole local chiffré (AES-128, poignée de main signée) qui
-  demande l'**e-mail et le mot de passe du compte TP-Link** (`--email`, ou les variables
-  `HOMESMART_TPLINK_EMAIL` et `HOMESMART_TPLINK_PASSWORD`) : la prise garde une empreinte de ces
-  identifiants depuis son installation et ne contacte pas le cloud pour autant. Les **anciennes
-  Kasa** (HS100, HS110…) répondent sans identifiants (protocole TCP 9999). Allumage et extinction
-  vont au journal.
-- Pas encore dans l'interface : les prises TP-Link n'ont ni carte, ni garde-fous, ni programmes.
-- Vérifié : la découverte sur un vrai réseau (Tapo C210 trouvée) ; KLAP et le protocole Kasa
-  seulement contre des appareils simulés, faute de prise TP-Link sous la main.
+- `tplink scan`: the TP-Link devices on the network (UDP 20002 discovery for recent devices, UDP
+  9999 for older Kasa devices): model, MAC, protocol, and « pas encore installé » (not set up yet)
+  for a device still in its factory state.
+- `tplink info|on|off <IP>`, `tplink brightness <IP> <%>`: **Tapo** plugs and bulbs (and recent Kasa
+  ones) speak **KLAP**, an encrypted local protocol (AES-128, signed handshake) that requires the
+  **TP-Link account e-mail and password** (`--email`, or the `HOMESMART_TPLINK_EMAIL` and
+  `HOMESMART_TPLINK_PASSWORD` variables): the plug has kept a hash of these credentials since it was
+  set up, yet it does not contact the cloud. **Older Kasa** devices (HS100, HS110…) answer without
+  credentials (TCP 9999 protocol). Switching on and off is recorded in the log.
+- Not in the interface yet: TP-Link plugs have no card, no Safeguards and no Schedules.
+- Verified: discovery on a real network (Tapo C210 found); KLAP and the Kasa protocol only against
+  simulated devices, for lack of a TP-Link plug at hand.
 
-### Vision par IA (en local)
+### AI vision (local)
 
-Panneau **Surveillance** d'une caméra ouverte : un interrupteur, l'état de l'analyse et trois
-choix simples (chute, appel à l'aide, visage connu). Tout le reste est dans **Avancé**, rangé par
-thème : « Ce que l'IA repère », « Réactions » (suivi, photos), « Écoute du micro », « Réglages
-avancés » (image analysée, analyses par seconde, calcul, précision), zones, scénarios et visages
-connus. Tout tourne sur le PC : aucune image ne sort.
+The **Surveillance** (Monitoring) panel of an open camera: a switch, the analysis status and three
+simple choices (fall, call for help, known face). Everything else is under **Avancé** (Advanced),
+grouped by topic: « Ce que l'IA repère » (What the AI spots), « Réactions » (Reactions: auto-tracking,
+photos), « Écoute du micro » (Microphone listening), « Réglages avancés » (Advanced settings: analyzed
+image, analyses per second, computation, accuracy), zones, scenarios and known faces. Everything runs
+on the PC: no image leaves it.
 
-- **Personnes et postures** : chaque personne est détectée, suivie d'une image à l'autre, et son
-  squelette (17 points) est estimé. Cadres, noms et squelettes sont dessinés sur la vidéo.
-- **Actions** : arrivée et départ d'une personne, **chute**, puis **personne au sol** si elle
-  reste immobile (alerte critique), et **relevée**. Une chute, c'est : passer brusquement de
-  debout à couché (tête nettement plus bas), ou une descente brusque de la tête et des hanches
-  (chute vers la caméra ou dos à elle, où le corps au sol paraît encore « debout » à l'image) ;
-  puis **rester au sol 1,5 s**. S'allonger lentement, s'asseoir, s'agenouiller, ramasser un objet
-  n'en sont pas. Une personne au sol, moins bien vue par le modèle (score faible), garde sa piste :
-  une détection faible prolonge une piste confirmée mais n'en ouvre jamais. Une chute ne rend pas
-  la silhouette plus haute (au-delà de +25 %) ni bien plus étroite (moins de 0,6×) : sinon, la piste
-  est passée à une autre silhouette (le buste seul d'une personne, puis son corps entier ; une
-  autre personne toute proche) ; et « couchée » d'après la seule forme de la boîte (squelette peu
-  sûr) ne compte pas si la personne debout était déjà coupée par le bas de l'image. Mesuré sur
-  1 548 vidéos réelles : deux fois moins de fausses chutes dans la vie courante, aucune vraie chute
-  perdue (voir « Qualité mesurée »).
-- **Gestes** (squelette) : **main levée** (tenue un instant), **deux bras levés** tenus 2 s =
-  signal d'appel à l'aide (alerte critique) — seulement chez une personne debout ou assise : couchée,
-  « au-dessus de la tête » ne veut rien dire à l'image (sur les vidéos de chute, tous les « bras
-  levés » venaient de personnes au sol).
-- **Immobilité** (au choix : non, 10 min, 30 min, 1 h) : personne qui ne bouge plus du tout.
-- **Violence** (désactivée par défaut) : coups répétés entre deux personnes — un poignet ou une
-  cheville qui part vite vers une personne toute proche et l'atteint, au moins 4 fois en 4 s, sous le
-  haut de sa silhouette (les accolades et les « tape là » se font à hauteur de tête). Alerte critique,
-  photo, scénario « des coups ». Le coup de poing amical dans l'épaule ne compte pas (trop haut),
-  une tape isolée non plus ; rien n'est cherché au-delà de 5 personnes à l'image (sport collectif,
-  fête), et un coup de pied ne compte que si celui qui frappe est entier dans l'image. Avec
-  l'**écoute des sons**, l'alerte attend 4 s : si l'on entend rire autour des coups (sans cri ni
-  pleurs), c'est une « chamaillerie probable », notée au journal sans alerte. Réglée pour ne pas
-  crier au loup, sur 1 548 vraies vidéos : **aucune fausse alerte** sur les 480 scènes calmes
-  d'origine (accolades, « tape là », poignées de main, vie courante) ; sur 481 jeux et gestes
-  amicaux filmés sur YouTube (Kinetics-700 : batailles d'oreillers, chatouilles, lutte, boxe, bras
-  de fer, massages…), 11 fausses alertes, 9 avec les rires (boxe 4, lutte 3, massage, poignée de
-  main) ; 4 sur 99 en capoeira et plaquages. En échange, 13 % seulement des 440 scènes violentes
-  trouvées (18 % à 15 analyses/s, 5 % avec la précision élevée, presque rien sous 8). Lutte et
-  boxe pour de faux, sans rires, restent impossibles à distinguer d'une vraie bagarre à l'image.
-- **Suivre la personne** (caméras motorisées) : la caméra tourne pour garder la personne au centre
-  (la plus grande, puis toujours la même), s'arrête si elle disparaît, revient à sa position de
-  départ 10 s après l'avoir perdue, et fait une pause de 10 s dès que tu la pilotes toi-même. Sur
-  une Ranger 2C : cible centrée en 1,2 s, sans dépassement ni va-et-vient. « Suivre aussi en
-  hauteur » est désactivé par défaut : l'inclinaison de la Ranger 2C ne répond pas en ONVIF, et
-  une commande qui en contient est ignorée en entier. Chaque mouvement est au journal.
-- **Animaux** (chat, chien, oiseau, cheval, mouton, vache, animal sauvage) et **véhicules**
-  (voiture, vélo, moto, camion, bus ; désactivés par défaut, utiles dehors) : apparition et départ,
-  cadres sur la vidéo. Analysés deux fois par seconde au plus, même si les personnes le sont à 30.
-  Chaque sorte a son seuil, réglé sur COCO (voir « Qualité mesurée ») ; un même animal vu à la fois
-  « chat » et « chien », ou un même véhicule vu à la fois « voiture » et « camion », ne compte qu'une
-  fois, sous la sorte la plus sûre (camions sur COCO : précision 0,56 → 0,65, images vides prises
-  pour un camion 24 → 13 ; un camion est parfois annoncé comme voiture).
-- **Deuxième avis sur les personnes** : quand le modèle des animaux est installé, une silhouette au
-  score modeste (reflet, manteau, poster) n'est retenue que si ce second modèle voit lui aussi
-  quelqu'un au même endroit ; une piste déjà admise n'a plus besoin d'avis. Sur COCO, mesuré comme
-  dans l'application : deux fois moins d'images vides prises pour une présence de jour (53 → 27 sur
-  1 020), presque trois fois moins en vision nocturne simulée (73 → 27), pour 1 % de vraies
-  personnes en moins.
-- **Photo des événements** (désactivée par défaut) : un PNG dans `Images\HomeSmart\Vision` à
-  chaque événement marquant (arrivée, inconnu, chute, bras levés, animal…), au plus une toutes les
-  5 s sauf alerte ; son nom est noté dans le journal.
-- **Derniers événements** de la caméra dans la section, et **en vue maintenant** (personnes,
-  animaux, véhicules).
-- **Présence aujourd'hui** : minutes où quelqu'un était en vue, heure par heure (24 barres), gardées
-  60 jours dans `presence.json` (que des durées) ; `homesmart-cli vision presence Salon --date …`.
-- **Analyses par seconde** : 2 à 30, **8 par défaut** (chutes : 74 % trouvées à 8, 60 % à 4 ; au-delà de la cadence de la caméra, chaque image n'est
-  analysée qu'une fois). Les règles se mesurent en durées, pas en nombre d'images : elles se
-  comportent pareil à 2 ou à 30 analyses par seconde.
-- **Zones** (porte, couloir, lit…), dessinées directement sur la vidéo : « Ajouter une zone », un
-  clic par sommet, puis double-clic (ou Entrée, ou clic sur le premier point) pour fermer ; Retour
-  arrière retire le dernier point, Échap annule. On lui donne un nom et, si on veut, un délai de
-  **présence prolongée** (0 = jamais). Le journal note l'entrée, la sortie et la présence prolongée
-  dans chaque zone, d'après le point d'appui au sol de la personne ; la zone occupée s'éclaire sur
-  la vidéo. Liste « Zones » de la section : renommer (nom et délai), supprimer. Les zones restent valables en
-  fluide comme en HD (coordonnées relatives à l'image) ; un tracé dont les côtés se croisent est refusé.
-- **Visages** : détection, puis reconnaissance des personnes **que tu enregistres** (« Enregistrer
-  ce visage » quand quelqu'un passe, ou **glisse une photo** JPEG/PNG sur la fenêtre ; plusieurs vues améliorent la reconnaissance — la photo n'est pas gardée, seule son empreinte). Une personne
-  n'est nommée qu'après plusieurs reconnaissances concordantes, qui font au moins un tiers des
-  visages nets vus sur sa piste : un inconnu qui reste longtemps ne finit plus par ressembler par
-  hasard à un habitant (foyers simulés sur LFW : 6 % → 2 % d'inconnus nommés à tort sur un long
-  passage, habitants toujours nommés) ; sinon « Visage inconnu ». Les
-  empreintes (données biométriques : 128 nombres par vue, aucune photo) restent dans `faces.json`
-  à côté de la configuration, **chiffrées** (voir plus bas) ; celles des inconnus ne sont jamais
-  gardées. Renommer, supprimer : « Visages connus ».
-- **Précision** (sous « Calcul ») : standard (RTMO-s) ou élevée (RTMO-m, téléchargé au premier
-  choix). Mesuré : de jour presque pareil (AP50 0,905 → 0,909), **de nuit nettement mieux** — 29 % de
-  fausses personnes en moins sur des images vides, chutes trouvées 68 % → 72 % avec 4 % de fausses
-  alertes au lieu de 11 %. Deux fois plus de calcul sur le processeur (34 → 70 ms par image), à
-  peine plus sur la carte graphique (13 → 17 ms).
-- **Suivi robuste** : une détection faible ne prolonge une piste que là où était la personne (ou à
-  ses pieds, quand elle tombe) ; un objet douteux du décor ne peut plus « capturer » la piste d'une
-  personne passée près de lui, ce qui donnait de fausses chutes sur une vraie caméra de nuit. Une
-  piste n'est confirmée (« Personne détectée ») qu'avec au moins deux détections sûres : un objet
-  du décor vu une fois au-dessus du seuil, puis faiblement, ne devient plus une personne. Une piste
-  **immobile** depuis 10 s (personne assise ou couchée, souvent mal vue ; silhouette du décor :
-  photo, affiche, écran) attend 60 s sans la voir avant de la dire partie, et ne se reprend que sur
-  place : plus de « Personne détectée » / « n'est plus en vue » (et « Visage inconnu ») toutes les
-  minutes pour la même silhouette, comme vu sur une vraie caméra. Elle n'est ni montrée ni comptée
-  comme présence pendant cette attente.
-- **Calcul** : carte graphique si possible (DirectML sous Windows : NVIDIA, AMD, Intel), sinon
-  processeur, avec repli automatique. Mesuré sur une Ranger 2C (image 2304×1296) : personnes 9 à
-  13 ms, visage 4,5 ms, empreinte 1 à 2 ms, animaux 7 ms sur carte graphique ; personnes 36 ms,
-  visage 6 ms, empreinte 6 ms sur processeur seul. À 30 analyses demandées, la carte graphique suit
-  la caméra (≈ 23 analyses/s réelles sur sa relecture).
-- **Flux analysé** : HD par défaut (visages reconnus de plus loin) ou fluide (moins de calcul).
-  L'analyse garde le flux ouvert elle-même ; le journal l'indique (« Système », « Vision IA »).
-- Tout est journalisé (source « Vision IA ») ; chute et personne au sol sont des alertes critiques.
+- **People and poses**: each person is detected, tracked from one frame to the next, and their
+  skeleton (17 keypoints) is estimated. Boxes, names and skeletons are drawn on the video.
+- **Actions**: a person arriving and leaving, **fall**, then **person on the floor** if they stay
+  still (critical alert), and **got back up**. A fall means: going abruptly from standing to lying
+  (head clearly lower), or an abrupt drop of the head and hips (a fall toward the camera or with the
+  back to it, where the body on the floor still looks "standing" in the image); then **staying on
+  the floor for 1.5 s**. Lying down slowly, sitting down, kneeling or picking something up do not
+  count. A person on the floor, less well seen by the model (low score), keeps their track: a weak
+  detection extends a confirmed track but never opens one. A fall does not make the silhouette taller
+  (beyond +25%) or much narrower (less than 0.6×): if it does, the track has jumped to another
+  silhouette (a person's upper body alone, then their whole body; another person very close by);
+  and "lying" based on the box shape alone (unreliable skeleton) does not count if the standing
+  person was already cut off by the bottom of the frame. Measured on 1,548 real videos: half as many
+  false falls in everyday life, no real fall missed (see "Quality measured").
+- **Gestes** (Gestures, from the skeleton): **raised hand** (held for a moment), **both arms raised**
+  held for 2 s = call-for-help signal (critical alert) — only for a person standing or sitting: when
+  lying down, "above the head" means nothing in the image (in the fall videos, all the "raised arms"
+  came from people on the floor).
+- **Immobilité** (Inactivity; choice of no, 10 min, 30 min or 1 h): a person who has stopped moving
+  altogether.
+- **Violence** (off by default): repeated blows between two people — a wrist or ankle that moves fast
+  toward a person very close by and reaches them, at least 4 times in 4 s, below the top of their
+  silhouette (hugs and high fives happen at head height). Critical alert, photo, « des coups » (blows)
+  scenario. A friendly punch on the shoulder does not count (too high), nor does a single tap; nothing
+  is looked for beyond 5 people in the image (team sports, parties), and a kick only counts if the
+  person kicking is fully in the frame. With **sound listening**, the alert waits 4 s: if laughter is
+  heard around the blows (with no screaming or crying), it is a « chamaillerie probable » (probable
+  horseplay), noted in the log without an alert. Tuned not to cry wolf, on 1,548 real videos: **no
+  false alarms** on the 480 original calm scenes (hugs, high fives, handshakes, everyday life); on 481
+  games and friendly gestures filmed on YouTube (Kinetics-700: pillow fights, tickling, wrestling,
+  boxing, arm wrestling, massages…), 11 false alarms, 9 with laughter taken into account (boxing 4,
+  wrestling 3, massage, handshake); 4 out of 99 in capoeira and tackles. The trade-off: only 13% of the
+  440 violent scenes are found (18% at 15 analyses/s, 5% with high accuracy, almost none below 8).
+  Mock wrestling and boxing, without laughter, remain impossible to tell apart from a real fight in
+  the image.
+- **Suivre la personne** (Follow the person; motorized cameras): the camera turns to keep the person
+  in the center (the largest one, then always the same one), stops if they disappear, returns to its
+  starting position 10 s after losing them, and pauses for 10 s as soon as you steer it yourself. On
+  a Ranger 2C: target centered in 1.2 s, with no overshoot or back-and-forth. « Suivre aussi en
+  hauteur » (Also follow vertically) is off by default: the Ranger 2C's tilt does not respond over
+  ONVIF, and a command that includes it is ignored entirely. Every movement is logged.
+- **Animaux** (Animals: cat, dog, bird, horse, sheep, cow, wild animal) and **véhicules** (vehicles:
+  car, bicycle, motorcycle, truck, bus; off by default, useful outdoors): appearing and leaving, boxes
+  on the video. Analyzed at most twice per second, even when people are analyzed at 30. Each kind has
+  its own threshold, tuned on COCO (see "Quality measured"); the same animal seen as both "cat" and
+  "dog", or the same vehicle seen as both "car" and "truck", only counts once, under the most
+  confident kind (trucks on COCO: precision 0.56 → 0.65, empty images mistaken for a truck 24 → 13; a
+  truck is sometimes reported as a car).
+- **Second opinion on people**: when the animal model is installed, a silhouette with a modest score
+  (reflection, coat, poster) is only kept if this second model also sees someone in the same place; a
+  track that has already been accepted no longer needs a second opinion. On COCO, measured as in the
+  app: half as many empty images mistaken for a presence by day (53 → 27 out of 1,020), almost three
+  times fewer in simulated night vision (73 → 27), at the cost of 1% fewer real people.
+- **Photo des événements** (Event photos; off by default): a PNG in `Images\HomeSmart\Vision` for
+  each notable event (arrival, stranger, fall, raised arms, animal…), at most one every 5 s except
+  for alerts; its name is noted in the log.
+- The camera's **Derniers événements** (Latest events) in the section, and **en vue maintenant** (In
+  view now: people, animals, vehicles).
+- **Présence aujourd'hui** (Presence today): minutes when someone was in view, hour by hour (24 bars),
+  kept for 60 days in `presence.json` (durations only); `homesmart-cli vision presence Salon --date …`.
+- **Analyses par seconde** (Analyses per second): 2 to 30, **8 by default** (falls: 74% found at 8, 60% at 4; beyond the camera's frame rate, each frame is
+  analyzed only once). The rules are measured in durations, not in numbers of frames: they behave
+  the same at 2 or at 30 analyses per second.
+- **Zones** (door, hallway, bed…), drawn directly on the video: « Ajouter une zone » (Add a zone), one
+  click per vertex, then double-click (or Enter, or click on the first point) to close; Backspace
+  removes the last point, Escape cancels. You give it a name and, if you want, a **présence
+  prolongée** (extended presence) delay (0 = never). The log notes entering, leaving and extended
+  presence in each zone, based on the person's ground contact point; the occupied zone lights up on
+  the video. « Zones » list in the section: rename (name and delay), delete. Zones remain valid on the
+  smooth stream as on the HD stream (coordinates relative to the image); a shape whose sides cross is rejected.
+- **Faces**: detection, then recognition of the people **you enroll** (« Enregistrer ce visage »
+  (Enroll this face) when someone walks by, or **drop a photo** JPEG/PNG onto the window; several views improve recognition — the photo is not kept, only its face embedding). A person
+  is only named after several matching recognitions, which make up at least a third of the sharp
+  faces seen on their track: a stranger who stays a long time no longer ends up resembling a household
+  member by chance (households simulated on LFW: 6% → 2% of strangers wrongly named over a long
+  visit, household members still always named); otherwise « Visage inconnu » (Unknown face). The
+  face embeddings (biometric data: 128 numbers per view, no photo) stay in `faces.json`
+  next to the configuration, **encrypted** (see below); those of strangers are never
+  kept. Rename, delete: « Visages connus » (Known faces).
+- **Précision** (Accuracy; under « Calcul » (Computation)): standard (RTMO-s) or high (RTMO-m,
+  downloaded the first time it is chosen). Measured: by day almost the same (AP50 0.905 → 0.909),
+  **clearly better at night** — 29% fewer false people on empty images, falls found 68% → 72% with
+  4% false alarms instead of 11%. Twice as much computation on the CPU (34 → 70 ms per frame),
+  barely more on the GPU (13 → 17 ms).
+- **Robust tracking**: a weak detection only extends a track where the person was (or at their
+  feet, when they fall); a dubious object in the scene can no longer "capture" the track of a person
+  who walked past it, which caused false falls on a real camera at night. A track is only confirmed
+  (« Personne détectée » (Person detected)) with at least two confident detections: an object in the
+  scene seen once above the threshold, then weakly, no longer becomes a person. A track that has been
+  **stationary** for 10 s (a person sitting or lying down, often poorly seen; a silhouette in the
+  scene: photo, poster, screen) waits 60 s without seeing it before declaring it gone, and is only
+  picked up again in the same spot: no more « Personne détectée » / « n'est plus en vue » (is no
+  longer in view) (and « Visage inconnu ») every minute for the same silhouette, as seen on a real
+  camera. It is neither shown nor counted as presence during this wait.
+- **Calcul**: GPU if possible (DirectML on Windows: NVIDIA, AMD, Intel), otherwise CPU, with
+  automatic fallback. Measured on a Ranger 2C (2304×1296 image): people 9 to 13 ms, face 4.5 ms,
+  face embedding 1 to 2 ms, animals 7 ms on GPU; people 36 ms, face 6 ms, face embedding 6 ms on CPU
+  alone. With 30 analyses requested, the GPU keeps up with the camera (≈ 23 actual analyses/s on its
+  recorded playback).
+- **Analyzed stream**: HD by default (faces recognized from farther away) or smooth (less computation).
+  The analysis keeps the stream open by itself; the log says so (« Système » (System), « Vision IA » (AI vision)).
+- Everything is logged (source « Vision IA »); fall and person on the floor are critical alerts.
 
-**Modèles** (téléchargés une fois depuis leur source officielle, empreinte SHA-256 vérifiée, rangés
-dans `%LOCALAPPDATA%\HomeSmart\models` ou `~/.local/share/homesmart/models` ; jamais dans le dépôt) :
+**Models** (downloaded once from their official source, SHA-256 checksum verified, stored in
+`%LOCALAPPDATA%\HomeSmart\models` or `~/.local/share/homesmart/models`; never in the repository):
 
-| Modèle | Rôle | Licence | Source |
+| Model | Role | License | Source |
 |---|---|---|---|
-| RTMO-s (body7) | personnes + squelettes | Apache-2.0 | [OpenMMLab MMPose](https://github.com/open-mmlab/mmpose/tree/main/projects/rtmo) |
-| RTMO-m (body7), au choix | idem, « Précision : élevée » (83 Mo) | Apache-2.0 | idem |
-| YuNet (2023mar) | visages + 5 points | MIT | [OpenCV Zoo](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) |
-| SFace (2021dec) | empreintes de visage | Apache-2.0 | [OpenCV Zoo](https://github.com/opencv/opencv_zoo/tree/main/models/face_recognition_sface) |
-| YOLOX-s | animaux + véhicules (COCO) | Apache-2.0 | [Megvii YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) |
+| RTMO-s (body7) | people + skeletons | Apache-2.0 | [OpenMMLab MMPose](https://github.com/open-mmlab/mmpose/tree/main/projects/rtmo) |
+| RTMO-m (body7), optional | same, « Précision : élevée » (Accuracy: high) (83 MB) | Apache-2.0 | same |
+| YuNet (2023mar) | faces + 5 landmarks | MIT | [OpenCV Zoo](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) |
+| SFace (2021dec) | face embeddings | Apache-2.0 | [OpenCV Zoo](https://github.com/opencv/opencv_zoo/tree/main/models/face_recognition_sface) |
+| YOLOX-s | animals + vehicles (COCO) | Apache-2.0 | [Megvii YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) |
 
-Moteur : [ONNX Runtime](https://onnxruntime.ai) (MIT) via le crate [`ort`](https://ort.pyke.io). Les
-binaires précompilés demandent un processeur x86-64 avec AVX2 (2013 et après). Sous Windows,
-`DirectML.dll` est livré à côté de l'exécutable ; sans lui, Windows 11 fournit le sien.
+Engine: [ONNX Runtime](https://onnxruntime.ai) (MIT) via the [`ort`](https://ort.pyke.io) crate. The
+prebuilt binaries require an x86-64 CPU with AVX2 (2013 and later). On Windows, `DirectML.dll` ships
+next to the executable; without it, Windows 11 provides its own.
 
-**Protection des empreintes** (`faces.json`, tout le contenu : noms et empreintes) :
+**Face embedding protection** (`faces.json`, all of its contents: names and face embeddings):
 
-| Système | Chiffrement | Qui peut relire le fichier |
+| System | Encryption | Who can read the file back |
 |---|---|---|
-| Windows | DPAPI (`CryptProtectData`, portée utilisateur) | ton compte Windows, sur ce PC |
-| Linux avec trousseau | AES-256-GCM ; la clé (256 bits tirés au hasard) est rangée dans le trousseau de ta session (Secret Service) | ta session, une fois le trousseau déverrouillé |
-| Linux sans trousseau | **aucun** : fichier en clair, droits `600`, avertissement dans le journal | ton compte (et root) |
+| Windows | DPAPI (`CryptProtectData`, user scope) | your Windows account, on this PC |
+| Linux with keyring | AES-256-GCM; the key (256 random bits) is stored in your session's keyring (Secret Service) | your session, once the keyring is unlocked |
+| Linux without keyring | **none**: plaintext file, `600` permissions, warning in the log | your account (and root) |
 
-- **Protège contre** la copie du fichier seul (sauvegarde, synchronisation, clé USB, disque lu sur
-  une autre machine) et contre les autres comptes de l'ordinateur.
-- **Ne protège pas contre** un programme lancé sous ton compte, ou un administrateur, pendant que ta
-  session est ouverte : il peut demander le déchiffrement comme HomeSmart le fait.
-- Copié sur un autre PC ou sous un autre compte, le fichier est illisible : il faut réenregistrer les
-  visages. De même si un administrateur **réinitialise** ton mot de passe Windows (le changer
-  normalement ne gêne pas), ou si le trousseau Linux est effacé.
-- Une galerie illisible (fichier abîmé, autre compte, trousseau verrouillé) n'est jamais écrasée : le
-  journal le signale (source « Système »), personne n'est reconnu, et enregistrer un visage est refusé
-  tant que le fichier n'est pas relu (trousseau déverrouillé) ou supprimé.
-- Une ancienne galerie en clair est relue puis réécrite chiffrée à sa première lecture ; le journal
-  l'indique. L'ancien contenu en clair n'est pas effacé physiquement du disque (SSD, journal du
-  système de fichiers).
-- Sans trousseau, HomeSmart ne chiffre pas pour la forme : la clé serait posée à côté du fichier, ce
-  qui ne protégerait de rien.
+- **Protects against** copying the file alone (backup, sync, USB stick, disk read on another
+  machine) and against the computer's other accounts.
+- **Does not protect against** a program launched under your account, or an administrator, while
+  your session is open: it can request decryption just as HomeSmart does.
+- Copied to another PC or under another account, the file is unreadable: the faces have to be
+  enrolled again. Same if an administrator **resets** your Windows password (changing it normally
+  is not a problem), or if the Linux keyring is erased.
+- An unreadable face gallery (damaged file, other account, locked keyring) is never overwritten: the
+  log reports it (source « Système »), nobody is recognized, and enrolling a face is refused until
+  the file is read back (keyring unlocked) or deleted.
+- An old plaintext gallery is read and then rewritten encrypted the first time it is read; the log
+  says so. The old plaintext content is not physically erased from the disk (SSD, file system
+  journal).
+- Without a keyring, HomeSmart does not encrypt just for show: the key would sit next to the file,
+  which would protect against nothing.
 
-> Filmer chez soi relève de l'usage personnel ; ne filme ni la voie publique ni chez les voisins,
-> préviens les personnes qui travaillent chez toi, et n'enregistre le visage que de personnes
-> d'accord.
+> Filming at home falls under personal use; do not film the public street or your neighbors' homes,
+> inform the people who work in your home, and only enroll the faces of people who agree.
 
-### Écoute par IA (en local)
+### AI listening (local)
 
-Dans **Surveillance › Avancé**, partie « Écoute du micro ». Désactivée par défaut, caméra
-par caméra. **Le son n'est jamais enregistré** : il est analysé en mémoire par blocs de quelques
-secondes, puis oublié ; seuls vont au journal (source « Écoute IA ») les sons reconnus et, si tu
-l'as activée, la parole transcrite.
+In **Surveillance › Avancé** (Monitoring › Advanced), the « Écoute du micro » (Microphone listening)
+part. Off by default, camera by camera. **Sound is never recorded**: it is analyzed in memory in
+blocks of a few seconds, then forgotten; only recognized sounds and, if you have enabled it,
+transcribed speech go to the log (source « Écoute IA » (AI listening)).
 
-- **Sons de la maison** : alarme incendie (détecteur de fumée), alarme ou sonnerie, **bris de
-  verre**, cri, pleurs (bébé ou adulte), détonation, aboiements, miaulements, sonnette, on frappe,
-  porte qui claque, téléphone, toux, ronflements, bruits de pas, sirène. Alarme incendie, verre
-  brisé et détonation sont des alertes critiques (avec photo si « Photo des événements » est
-  activée) ; un même son n'est signalé qu'une fois par 30 s.
-- **Transcrire la parole** : la voix est détectée, chaque phrase est transcrite en français, et
-  le texte va au journal ; « au secours », « à l'aide », « aidez-moi »… déclenchent une **alerte
-  critique**. Les phrases « fantômes » de Whisper (« Sous-titres réalisés par… », boucles) et ses
-  descriptions de sons (« \*rires\* », « [Musique] ») sont écartées : sur 176 bruits sans parole
-  (toux, rires, éternuements, sirènes…), aucune phrase n'arrive au journal.
-- **Son amélioré** (bouton à côté du volume, en direct comme en relecture ; activé par défaut) :
-  filtre des basses (90 Hz), volume automatique qui ramène la voix vers −20 dBFS sans faire monter le
-  bruit de fond (les micros de caméra sont faibles : crête à 1 % sur une Imou), limiteur doux,
-  rééchantillonnage de qualité vers la carte son, fondus de 5 ms au lieu des claquements quand le
-  réseau saccade. L'analyse par IA, elle, reçoit toujours le son brut.
-- Niveau du micro et derniers sons ou phrases entendus dans la section ; il faut que la caméra ait
-  un micro actif (sinon la section le dit).
-- Calcul : sons ≈ 7 ms par fenêtre de 3 s (une toutes les 0,5 s) ; transcription 8 fois plus
-  rapide que le temps réel sur le processeur, un peu plus sur la carte graphique.
+- **Sons de la maison** (Household sounds): fire alarm (smoke detector), alarm or ringing, **breaking
+  glass**, scream, crying (baby or adult), gunshot, barking, meowing, doorbell, knocking, door
+  slamming, telephone, coughing, snoring, footsteps, siren. Fire alarm, breaking glass and gunshot
+  are critical alerts (with a photo if « Photo des événements » (Event photos) is enabled); the same
+  sound is only reported once per 30 s.
+- **Transcrire la parole** (Transcribe speech): the voice is detected, each sentence is transcribed
+  in French, and the text goes to the log; « au secours » (help!), « à l'aide » (help), « aidez-moi »
+  (help me)… trigger a **critical alert**. Whisper's "phantom" sentences (« Sous-titres réalisés
+  par… » (Subtitles by…), loops) and its sound descriptions (« \*rires\* » (\*laughter\*),
+  « [Musique] » ([Music])) are discarded: out of 176 noises without speech (coughing, laughter,
+  sneezing, sirens…), no sentence reaches the log.
+- **Son amélioré** (Enhanced sound; button next to the volume, live as well as in playback; on by
+  default): low-cut filter (90 Hz), automatic volume that brings the voice toward −20 dBFS without
+  raising the background noise (camera microphones are quiet: peaking at 1% on an Imou), soft
+  limiter, high-quality resampling to the sound card, 5 ms fades instead of clicks when the network
+  stutters. The AI analysis, for its part, always receives the raw sound.
+- Microphone level and the latest sounds or sentences heard, in the section; the camera must have
+  an active microphone (otherwise the section says so).
+- Computation: sounds ≈ 7 ms per 3 s window (one every 0.5 s); transcription 8 times faster than
+  real time on the CPU, a little more on the GPU.
 
-| Modèle | Rôle | Licence | Source |
+| Model | Role | License | Source |
 |---|---|---|---|
-| CED-mini (int8, export sherpa-onnx) | 527 sortes de sons (AudioSet) | Apache-2.0 (poids aussi publiés en CC-BY-4.0) | [CED](https://github.com/RicherMans/CED), [k2-fsa](https://huggingface.co/k2-fsa/sherpa-onnx-ced-mini-audio-tagging-2024-04-19) |
-| Noms AudioSet | étiquettes des sons | CC-BY-4.0 | [Google AudioSet](https://research.google.com/audioset/) |
-| Silero VAD v6 | détection de la voix | MIT | [snakers4/silero-vad](https://github.com/snakers4/silero-vad) |
-| Whisper small (int8, export onnx-community) | parole → texte | MIT | [OpenAI Whisper](https://github.com/openai/whisper), [onnx-community](https://huggingface.co/onnx-community/whisper-small) |
+| CED-mini (int8, sherpa-onnx export) | 527 kinds of sounds (AudioSet) | Apache-2.0 (weights also published under CC-BY-4.0) | [CED](https://github.com/RicherMans/CED), [k2-fsa](https://huggingface.co/k2-fsa/sherpa-onnx-ced-mini-audio-tagging-2024-04-19) |
+| AudioSet names | sound labels | CC-BY-4.0 | [Google AudioSet](https://research.google.com/audioset/) |
+| Silero VAD v6 | voice detection | MIT | [snakers4/silero-vad](https://github.com/snakers4/silero-vad) |
+| Whisper small (int8, onnx-community export) | speech → text | MIT | [OpenAI Whisper](https://github.com/openai/whisper), [onnx-community](https://huggingface.co/onnx-community/whisper-small) |
 
-≈ 264 Mo en tout (10 Mo pour les seuls sons), téléchargés et vérifiés comme ceux de la vision.
+≈ 264 MB in total (10 MB for the sounds alone), downloaded and verified like the vision models.
 
-> Écouter chez soi relève, comme filmer, de l'usage personnel : préviens les personnes présentes
-> (invités, personnes qui travaillent chez toi) avant d'activer la transcription.
+> Listening at home, like filming, falls under personal use: inform the people present
+> (guests, people who work in your home) before enabling transcription.
 
-### Mode absence (alarme)
+### Away mode (alarm)
 
-En haut de la rubrique **Caméras** : « Mode absence » (armé, un bandeau le rappelle sur tous les écrans). Tant qu'il est activé, **toute personne vue**
-par une caméra analysée déclenche une **alerte critique** (« Intrusion ? Personne détectée… ») avec
-une **photo** (même si « Photo des événements » est désactivé) et une notification du système. Un
-visage connu est nommé dans le journal juste après. Le scénario « une intrusion (mode absence) »
-peut, par exemple, allumer toutes les lumières.
+At the top of the **Caméras** (Cameras) section: « Mode absence » (Away mode; when armed, a banner reminds you of it on every screen). While it is on, **anyone seen**
+by an analyzed camera triggers a **critical alert** (« Intrusion ? Personne détectée… » (Intrusion?
+Person detected…)) with a **photo** (even if « Photo des événements » (Event photos) is off) and a
+system notification. A known face is named in the log right after. The « une intrusion (mode
+absence) » (an intrusion, away mode) scenario can, for example, turn on all the lights.
 
-### Scénarios (la caméra commande tes appareils)
+### Scenarios (the camera controls your devices)
 
-**Surveillance › Avancé** d'une caméra, partie « Scénarios » : « Quand [déclencheur], alors [allumer /
-éteindre] [appareil] », éventuellement **seulement sur une plage horaire** (22:00 → 07:00…).
+A camera's **Surveillance › Avancé** (Monitoring › Advanced), « Scénarios » (Scenarios) part: « Quand
+[déclencheur], alors [allumer / éteindre] [appareil] » (When [trigger], then [turn on / turn off]
+[device]), optionally **only during a time window** (22:00 → 07:00…).
 
-| Déclencheur | D'où il vient |
+| Trigger | Where it comes from |
 |---|---|
-| quelqu'un arrive | personne qui entre dans le champ (piste confirmée) |
-| personne depuis N min | pièce vide : aucune personne en vue depuis N minutes, **tant que l'analyse tourne** (sans elle, HomeSmart ne sait pas si la pièce est vide) ; une seule fois par absence |
-| une chute | chute confirmée (personne restée au sol) |
-| un appel à l'aide | deux bras levés, ou « au secours », « à l'aide »… entendu (si la transcription est activée) ; un simple cri ne suffit pas (enfants qui jouent) |
-| une alarme incendie | détecteur de fumée entendu (« Sons de la maison ») |
-| du verre brisé | bris de verre entendu (« Sons de la maison ») |
-| une intrusion (mode absence) | quelqu'un arrive pendant que le mode absence est activé |
-| des coups (violence) | coups répétés entre deux personnes (vision + son) |
-| un sabotage de caméra | objectif masqué, caméra détournée ou image floutée (voir « Détection de sabotage ») |
-| mode absence activé / désactivé | la maison entière : départ ou retour (pratique pour l'aspirateur) |
+| quelqu'un arrive (someone arrives) | a person entering the field of view (confirmed track) |
+| personne depuis N min (nobody for N min) | empty room: no person in view for N minutes, **as long as the analysis is running** (without it, HomeSmart cannot know whether the room is empty); only once per absence |
+| une chute (a fall) | confirmed fall (person who stayed on the floor) |
+| un appel à l'aide (a call for help) | both arms raised, or « au secours » (help!), « à l'aide » (help)… heard (if transcription is enabled); a mere scream is not enough (children playing) |
+| une alarme incendie (a fire alarm) | smoke detector heard (« Sons de la maison » (Household sounds)) |
+| du verre brisé (broken glass) | breaking glass heard (« Sons de la maison ») |
+| une intrusion (mode absence) (an intrusion, away mode) | someone arrives while away mode is on |
+| des coups (violence) (blows, violence) | repeated blows between two people (vision + sound) |
+| un sabotage de caméra (camera tampering) | lens covered, camera turned away or image blurred (see « Détection de sabotage » (Tamper detection)) |
+| mode absence activé / désactivé (away mode on / off) | the whole house: leaving or coming back (handy for the robot vacuum) |
 
-Un scénario **sans caméra** vaut pour toutes les caméras analysées : « personne depuis N min »
-veut alors dire **la maison est vide** (personne sur aucune caméra), « quelqu'un arrive » vaut pour
-n'importe laquelle. Les aspirateurs robots ont leurs propres actions : **nettoyer** ou **rentrer à
-la base**.
+A scenario **without a camera** applies to all analyzed cameras: « personne depuis N min » then
+means **the house is empty** (nobody on any camera), and « quelqu'un arrive » applies to any of
+them. Robot vacuums have their own actions: **nettoyer** (clean) or **rentrer à la base** (return to
+the dock).
 
-- Exemples : éteindre le radiateur quand la chambre est vide depuis 30 min (proposé d'office si un
-  appareil à risque est dans la même pièce que la caméra) ; allumer la lumière du couloir quand
-  quelqu'un arrive la nuit ; allumer toutes les lumières en cas de chute ou d'appel à l'aide.
-- Un même scénario sur événement ne se déclenche qu'une fois par minute.
-- **Garde-fous respectés** : un appareil qui demande une confirmation pour être allumé (chauffage)
-  ne l'est jamais par un scénario — le journal le dit.
-- Tout est journalisé (source « Scénario ») : la raison (« Chambre : personne depuis 30 min →
-  éteindre « Radiateur » »), puis la commande. Supprimer la caméra ou l'appareil supprime ses scénarios.
+- Examples: turn off the heater when the bedroom has been empty for 30 min (suggested automatically
+  if a risky device is in the same room as the camera); turn on the hallway light when someone
+  arrives at night; turn on all the lights in case of a fall or a call for help.
+- A given event-based scenario only triggers once per minute.
+- **Safeguards respected**: a device that requires a confirmation to be turned on (heating) is never
+  turned on by a scenario — the log says so.
+- Everything is logged (source « Scénario » (Scenario)): the reason (« Chambre : personne depuis 30 min →
+  éteindre « Radiateur » » (Bedroom: nobody for 30 min → turn off "Heater")), then the command. Deleting the camera or the device deletes its scenarios.
 
-### Aspirateurs robots
+### Robot vacuums
 
-Les robots s'affichent dans **Maison** comme les autres appareils : la tuile s'allume pendant le
-nettoyage, montre l'activité et la batterie ; un clic lance le nettoyage (ou le met en pause), un
-clic droit ouvre le panneau : activité en grand, batterie, surface et durée, boutons **Nettoyer /
-Pause**, **Base**, **Arrêter**, **Trouver** (signal sonore), puis ce que le robot sait régler
-(**puissance d'aspiration**, **mode**, **débit d'eau**, façons de nettoyer), l'**usure** des
-brosses et du filtre, les **automatismes** et les **programmes**.
+Robots appear in **Maison** (Home) like the other devices: the tile lights up during cleaning,
+shows the activity and the battery; a click starts cleaning (or pauses it), a right-click opens the
+panel: activity in large type, battery, area and duration, the **Nettoyer / Pause** (Clean / Pause),
+**Base** (Dock), **Arrêter** (Stop) and **Trouver** (Find: sound signal) buttons, then whatever the
+robot can adjust (**puissance d'aspiration** (suction power), **mode**, **débit d'eau** (water
+flow), ways of cleaning), the **usure** (wear) of the brushes and filter, the **automatismes**
+(automations) and the **programmes** (schedules).
 
-| Famille | Comment HomeSmart le joint | Ce qu'il faut une fois |
+| Family | How HomeSmart reaches it | What you need once |
 |---|---|---|
-| Tuya / Smart Life (catégorie « sd ») | protocole local Tuya, comme les prises | la clé locale (import Smart Life par QR code, comme les autres appareils) |
-| Valetudo (Dreame, Roborock, Xiaomi… au micrologiciel libre) | API REST locale (HTTP) | rien : ni compte ni clé ; identifiants seulement si l'accès HTTP de Valetudo est protégé |
-| miIO (Xiaomi, Roborock, Dreame fabriqués avant 2022) | UDP 54321 local, chiffré | le **jeton** de l'appareil (32 caractères), extrait une fois depuis le compte Xiaomi |
+| Tuya / Smart Life (category « sd ») | Tuya local protocol, like the plugs | the local key (Smart Life import via QR code, like the other devices) |
+| Valetudo (Dreame, Roborock, Xiaomi… running open-source firmware) | local REST API (HTTP) | nothing: no account, no key; credentials only if Valetudo's HTTP access is protected |
+| miIO (Xiaomi, Roborock, Dreame made before 2022) | local UDP 54321, encrypted | the device's **token** (32 characters), extracted once from the Xiaomi account |
 
-- **Dreame récents** (application Dreamehome) : **aucune commande locale**, le robot ne répond
-  qu'au cloud de Dreame. Pour s'en passer, il faut installer **Valetudo** sur le robot (souvent en
-  l'ouvrant ; voir valetudo.cloud). Le cloud Dreamehome n'est pas proposé : son accès imite
-  l'application Dreame (empreinte réseau, secrets de l'application) et peut cesser à tout moment.
-- **Ajout** : Maison › « + » › « Aspirateur robot » : recherche sur le réseau (annonce mDNS de
-  Valetudo, poignée de main miIO), bouton **Tester**, puis **Ajouter**.
-- **Journal** : chaque commande avec son origine (toi, ligne de commande, programme, scénario) ;
-  les nettoyages lancés hors de HomeSmart (bouton du robot, son application, son programme
-  interne) et la fin de chaque nettoyage (« Nettoyage terminé : 23 m² en 41 min, retour à la
-  base ») sont notés « Appareil ».
-- **Problèmes** : les erreurs du robot ouvrent « Aspirateur en difficulté » avec ce qu'il faut
-  faire (brosse bloquée, bac plein, robot coincé, soulevé, capteurs, batterie…), avec leur
-  gravité : information (bac plein, réservoir), avertissement (blocages), critique (batterie
-  défaillante, notification du système) ; « Résolu » quand l'erreur disparaît. Un robot qui ne
-  répond plus passe en « Hors ligne ».
-- **Automatismes** (panneau du robot) : nettoyer quand la maison est vide depuis N min (caméras
-  analysées), nettoyer quand le mode absence est activé, rentrer à la base quand quelqu'un arrive
-  ou à la fin du mode absence. **Programmes** : « nettoyer à 10:00 en semaine », ou une plage
-  (« nettoyage de 10:00 à 11:30 », retour à la base à la fin).
-- Démo (`--demo`) : un robot Tuya et un robot Valetudo simulés ; Problèmes › « Simuler une panne »
-  y provoque une brosse bloquée ou un robot coincé.
+- **Recent Dreame** (Dreamehome app): **no local control**, the robot only answers Dreame's cloud.
+  To do without it, you have to install **Valetudo** on the robot (often by opening it up; see
+  valetudo.cloud). The Dreamehome cloud is not offered: accessing it means imitating the Dreame app
+  (network fingerprint, app secrets) and it may stop working at any time.
+- **Adding**: Maison › « + » › « Aspirateur robot » (Robot vacuum): network search (Valetudo mDNS
+  announcement, miIO handshake), **Tester** (Test) button, then **Ajouter** (Add).
+- **Log**: every command with its origin (you, command line, schedule, scenario); cleanings started
+  outside HomeSmart (robot button, its app, its built-in schedule) and the end of each cleaning
+  (« Nettoyage terminé : 23 m² en 41 min, retour à la base » (Cleaning finished: 23 m² in 41 min,
+  returning to the dock)) are logged under « Appareil » (Device).
+- **Problèmes** (Problems): the robot's errors open « Aspirateur en difficulté » (Vacuum in trouble)
+  with what to do (brush stuck, bin full, robot stuck, lifted, sensors, battery…), with their
+  severity: information (bin full, water tank), warning (blockages), critical (failing battery,
+  system notification); « Résolu » (Resolved) when the error goes away. A robot that no longer
+  responds switches to « Hors ligne » (Offline).
+- **Automatismes** (robot panel): clean when the house has been empty for N min (analyzed cameras),
+  clean when away mode is turned on, return to the dock when someone arrives or when away mode
+  ends. **Programmes**: « nettoyer à 10:00 en semaine » (clean at 10:00 on weekdays), or a time window
+  (« nettoyage de 10:00 à 11:30 » (cleaning from 10:00 to 11:30), returning to the dock at the end).
+- Demo (`--demo`): a simulated Tuya robot and a simulated Valetudo robot; Problèmes › « Simuler une
+  panne » (Simulate a fault) triggers a stuck brush or a stuck robot on them.
+### Quality measured on real data
 
-### Qualité mesurée sur des données réelles
+`homesmart-cli vision eval …` and `homesmart-cli listen eval …` measure the models on public annotated
+datasets, downloaded separately (never in the repository). Results on the development PC:
 
-`homesmart-cli vision eval …` et `homesmart-cli listen eval …` mesurent les modèles sur des jeux
-publics annotés, téléchargés à part (jamais dans le dépôt). Résultats sur le PC de développement :
-
-| Mesure | Jeu | Résultat |
+| Measure | Dataset | Result |
 |---|---|---|
-| Personnes (RTMO-s, moyennes et grandes) | COCO val2017, 1 952 images | AP50 0,905 ; au seuil 0,5 : précision 0,93, rappel 0,83 ; avec le deuxième avis, comme l'application : précision 0,95, rappel 0,82, 27 images vides sur 1 020 prises pour une présence (de nuit : rappel 0,72, 27 aussi) |
-| Squelettes | idem, 2 259 personnes | OKS moyen 0,85 (84 % ≥ 0,75) |
-| Chats / chiens (YOLOX-s) | idem | AP50 0,89 / 0,76 ; aux seuils de l'application : précision 0,91 / 0,83, rappel 0,86 / 0,75 |
-| Visages (YuNet + SFace) | LFW, 6 000 paires | au seuil 0,36 : 0,07 % d'acceptés à tort, 1 % de refusés, 99,5 % juste ; visages de 34 px : 98,8 % ; nuit simulée : 98,0 % |
-| Visages, décision finale | LFW, 400 foyers simulés (4 habitants enregistrés avec 3 photos, 4 inconnus de passage) | habitants nommés : 100 % ; inconnus nommés à tort : 1,8 % sur un passage de 4 visages, 2,0 % sur 200 (6,3 % avant le réglage du vote) ; de nuit 1,9 % (7,9 %) |
-| Chutes (règles sur les squelettes) | CAUCAFall + UR Fall, 150 vidéos réelles | 74 % des chutes trouvées, 3 % de fausses alertes sur 70 gestes du quotidien (avant réglage : 50 % et 23 %) |
-| Toute la chaîne d'alertes (suivi, chutes, gestes, violence) | 1 548 vidéos réelles (chutes, bagarres, jeux, vie courante : 738 vidéos, 1,4 h) | chutes : 59 sur 80, fausses chutes dans la vie courante 21 → 13 (de nuit : 50 sur 80, 26 → 17) ; « bras levés » à tort 37 → 16, plus aucun chez une personne au sol ; arrivées en double 144 → 130 ; violence 55 sur 440 (57 avant), 15 fausses alertes sur 1 060 |
-| Sons de la maison (CED-mini) | ESC-50 (176 extraits) + 289 phrases (FLEURS) | 6 à 8 sur 8 trouvés selon le son, ≤ 2 fausses alertes sur 450 extraits neutres ; presque autant avec quelqu'un qui parle aussi fort par-dessus |
-| Parole → texte (Whisper small) | FLEURS français, 40 phrases | 10 % de mots erronés au calme ; 23 % avec bruits de la maison à 10 dB ; 15 % en micro 8 kHz (G.711) |
+| People (RTMO-s, medium and large) | COCO val2017, 1,952 images | AP50 0.905; at threshold 0.5: precision 0.93, recall 0.83; with the second opinion, as in the app: precision 0.95, recall 0.82, 27 of 1,020 empty images mistaken for a presence (at night: recall 0.72, also 27) |
+| Skeletons | same, 2,259 people | mean OKS 0.85 (84% ≥ 0.75) |
+| Cats / dogs (YOLOX-s) | same | AP50 0.89 / 0.76; at the app's thresholds: precision 0.91 / 0.83, recall 0.86 / 0.75 |
+| Faces (YuNet + SFace) | LFW, 6,000 pairs | at threshold 0.36: 0.07% wrongly accepted, 1% rejected, 99.5% correct; 34 px faces: 98.8%; simulated night: 98.0% |
+| Faces, final decision | LFW, 400 simulated households (4 residents enrolled with 3 photos, 4 passing strangers) | residents named: 100%; strangers wrongly named: 1.8% over a visit of 4 faces, 2.0% over 200 (6.3% before the vote was tuned); at night 1.9% (7.9%) |
+| Falls (rules on the skeletons) | CAUCAFall + UR Fall, 150 real videos | 74% of falls detected, 3% false alarms over 70 everyday movements (before tuning: 50% and 23%) |
+| The whole alert pipeline (tracking, falls, gestures, violence) | 1,548 real videos (falls, fights, play, everyday life: 738 videos, 1.4 h) | falls: 59 of 80, false falls in everyday life 21 → 13 (at night: 50 of 80, 26 → 17); wrong « bras levés » (raised arms) 37 → 16, none at all for a person on the floor; duplicate arrivals 144 → 130; violence 55 of 440 (57 before), 15 false alarms over 1,060 |
+| Household sounds (CED-mini) | ESC-50 (176 clips) + 289 sentences (FLEURS) | 6 to 8 of 8 detected depending on the sound, ≤ 2 false alarms over 450 neutral clips; almost as many with someone talking just as loudly over them |
+| Speech → text (Whisper small) | FLEURS French, 40 sentences | 10% of words wrong in quiet conditions; 23% with household noise at 10 dB; 15% with an 8 kHz microphone (G.711) |
 
-Essayé et écarté d'après ces mesures : un débruitage (filtre de Wiener) avant Whisper (12 % d'erreurs
-au calme au lieu de 10, 25 % au lieu de 23 dans le bruit : Whisper préfère le son brut) ; des fenêtres
-d'écoute de 1 s (bien moins justes que 3 s). Les modèles audio quantifiés tournent sur le processeur :
-CED en int8 fait planter DirectML, et Whisper n'y gagne que 30 %. Pour les chutes, abaisser les seuils
-de descente ou de maintien au sol gagne 1 à 2 chutes pour 2 à 3 fausses alertes de plus : les seuils
-sont restés ; une règle sur les pieds (qui descendent dans une chute vers la caméra) a été écartée,
-car elle aurait aussi masqué les chutes dos à la caméra, absentes des vidéos. Le deuxième avis sur
-les personnes n'a pas de meilleur réglage que 0,8 / 0,2.
+Tried and rejected based on these measurements: denoising (Wiener filter) before Whisper (12% errors
+in quiet conditions instead of 10, 25% instead of 23 in noise: Whisper prefers the raw sound); 1 s
+listening windows (far less accurate than 3 s). The quantized audio models run on the CPU: CED in
+int8 crashes DirectML, and Whisper only gains 30% from it. For falls, lowering the descent or
+time-on-the-floor thresholds gains 1 to 2 falls for 2 to 3 more false alarms: the thresholds were
+kept; a rule on the feet (which move down in a fall toward the camera) was rejected, because it would
+also have masked falls with the back to the camera, which are absent from the videos. The second
+opinion on people has no better setting than 0.8 / 0.2.
 
-Jeux utilisés : [COCO](https://cocodataset.org) (annotations CC-BY-4.0), [LFW](http://vis-www.cs.umass.edu/lfw/),
+Datasets used: [COCO](https://cocodataset.org) (CC-BY-4.0 annotations), [LFW](http://vis-www.cs.umass.edu/lfw/),
 [ESC-50](https://github.com/karolpiczak/ESC-50) (CC-BY-NC), [FLEURS](https://huggingface.co/datasets/google/fleurs)
-(CC-BY-4.0), [CAUCAFall](https://data.mendeley.com/datasets/7w7fccy7ky) (CC-BY-4.0) et
-[UR Fall](https://fenix.ur.edu.pl/~mkepski/ds/uf.html) (chutes) ; pour la violence et la chaîne
-d'alertes, [AIRTLab](https://github.com/airtlab/A-Dataset-for-Automatic-Violence-Detection-in-Videos),
+(CC-BY-4.0), [CAUCAFall](https://data.mendeley.com/datasets/7w7fccy7ky) (CC-BY-4.0) and
+[UR Fall](https://fenix.ur.edu.pl/~mkepski/ds/uf.html) (falls); for violence and the alert
+pipeline, [AIRTLab](https://github.com/airtlab/A-Dataset-for-Automatic-Violence-Detection-in-Videos),
 [Surveillance Camera Fight](https://github.com/seymanurakti/fight-detection-surv-dataset) (MIT),
-[UT-Interaction](https://cvrc.ece.utexas.edu/SDHA2010/Human_Interaction.html) et des extraits de
-[Kinetics-700](https://github.com/cvdfoundation/kinetics-dataset) (jeux, sports, gestes amicaux).
+[UT-Interaction](https://cvrc.ece.utexas.edu/SDHA2010/Human_Interaction.html) and clips from
+[Kinetics-700](https://github.com/cvdfoundation/kinetics-dataset) (play, sports, friendly gestures).
 
-### Interface dans le terminal (TUI)
+### Terminal interface (TUI)
 
 ```bash
-homesmart-cli tui            # tes appareils et caméras
-homesmart-cli tui --demo     # appareils et caméras simulés
+homesmart-cli tui            # your devices and cameras
+homesmart-cli tui --demo     # simulated devices and cameras
 ```
 
-Plein écran, au clavier, avec le même moteur que l'application (garde-fous, programmes, énergie,
-journal ; les actions y sont notées « Ligne de commande ») :
+Full screen, keyboard-driven, with the same engine as the app (safeguards, schedules, energy,
+log; actions taken there are logged as « Ligne de commande » (Command line)):
 
-- **Appareils** (F1) : état et mesure de chaque appareil, détail de tous ses points de données.
-  `Espace` allume ou éteint (avec confirmation si un garde-fou le demande), `←` `→` règlent la
-  luminosité, `1`-`9` les sorties d'une multiprise, `m` la minuterie, `r` redemande l'état.
-- **Caméras** (F2) : état, flux, orientation avec `Maj` + flèches, capture avec `c`, et `v` pour
-  un **aperçu vidéo en couleurs dans le terminal** (demi-blocs, ~12 images/s ; Windows Terminal
-  ou tout terminal en couleurs 24 bits).
-- **Énergie** (F3) : puissance, kWh et coût du jour et du mois, histogramme heure par heure.
-- **Journal** (F4) : toutes les actions, en direct.
-- **Aspirateurs** (F5) : activité, batterie, erreurs, usure ; `Espace` nettoie (ou met en pause),
-  `b` renvoie à la base, `x` arrête, `t` fait sonner le robot, `p` change la puissance.
+- **Appareils** (Devices, F1): status and measurements of each device, details of all its data points.
+  `Espace` (Space) switches on or off (with confirmation if a safeguard requires it), `←` `→` set the
+  brightness, `1`-`9` the outlets of a power strip, `m` the timer, `r` requests the status again.
+- **Caméras** (Cameras, F2): status, stream, pan/tilt with `Maj` (Shift) + arrows, snapshot with `c`,
+  and `v` for a **color video preview in the terminal** (half blocks, ~12 frames/s; Windows Terminal
+  or any 24-bit color terminal).
+- **Énergie** (Energy, F3): power, kWh and cost for the day and the month, hour-by-hour histogram.
+- **Journal** (Log, F4): all actions, live.
+- **Aspirateurs** (Vacuums, F5): activity, battery, errors, wear; `Espace` starts cleaning (or pauses),
+  `b` sends the robot back to the base, `x` stops, `t` makes the robot beep, `p` changes the suction power.
 
-`Tab` change d'onglet, `q` quitte. Si l'application est déjà ouverte, la TUI le signale : les
-prises n'acceptent souvent qu'une connexion à la fois.
+`Tab` switches tabs, `q` quits. If the app is already open, the TUI tells you so: plugs often
+accept only one connection at a time.
 
-### Ligne de commande
+### Command line
 
 ```bash
-homesmart-cli scan                          # appareils Tuya présents sur le Wi-Fi
+homesmart-cli scan                          # Tuya devices present on the Wi-Fi
 homesmart-cli add bf1234... "clé16caractères" --name "Lampe salon" --room Salon
-homesmart-cli import-cloud <code>           # import unique depuis Smart Life (QR code dans le terminal)
-homesmart-cli import devices.json           # import tinytuya
+homesmart-cli import-cloud <code>           # one-time import from Smart Life (QR code in the terminal)
+homesmart-cli import devices.json           # tinytuya import
 homesmart-cli list
 homesmart-cli status "Lampe salon"
 homesmart-cli on "Lampe salon"
-homesmart-cli set "Lampe salon" 22 500      # DP 22 = luminosité (10 à 1000)
-homesmart-cli watch "Multiprise - Bureau"   # mesures en direct
+homesmart-cli set "Lampe salon" 22 500      # DP 22 = brightness (10 to 1000)
+homesmart-cli watch "Multiprise - Bureau"   # live measurements
 
-homesmart-cli cam scan                      # caméras du réseau (Imou / Dahua, ONVIF, RTSP)
-homesmart-cli cam add 192.168.1.164 --name Salon   # le code de sécurité est demandé au clavier
-homesmart-cli cam test Salon                # vidéo + ONVIF
-homesmart-cli cam info Salon                # modèle, firmware, profils vidéo, positions
-homesmart-cli cam snapshot Salon            # capture HD (--sub : flux fluide, -o fichier.png)
+homesmart-cli cam scan                      # cameras on the network (Imou / Dahua, ONVIF, RTSP)
+homesmart-cli cam add 192.168.1.164 --name Salon   # you are prompted to type the security code
+homesmart-cli cam test Salon                # video + ONVIF
+homesmart-cli cam info Salon                # model, firmware, video profiles, positions
+homesmart-cli cam snapshot Salon            # HD snapshot (--sub: smooth stream, -o fichier.png)
 homesmart-cli cam move Salon gauche --ms 600
-homesmart-cli cam goto Salon "Entrée"       # position mémorisée
+homesmart-cli cam goto Salon "Entrée"       # preset position
 homesmart-cli cam home Salon
-homesmart-cli cam encoder Salon --fps 25 --kbps 4096   # sans option : affiche le réglage
-homesmart-cli cam watch Salon --hd          # cadence, débit, temps de décodage, processeur
-homesmart-cli cam recordings Salon          # séquences de la carte SD aujourd'hui (--date 2026-10-19)
+homesmart-cli cam encoder Salon --fps 25 --kbps 4096   # with no option: shows the current setting
+homesmart-cli cam watch Salon --hd          # frame rate, bitrate, decoding time, CPU
+homesmart-cli cam recordings Salon          # today's SD card recordings (--date 2026-10-19)
 homesmart-cli cam replay Salon --start "2026-10-20 20:52:59" --end "2026-10-20 20:53:44"
 homesmart-cli cam export Salon --start "2026-10-20 20:52:59" --end "2026-10-20 20:53:44"
-homesmart-cli cam tamper Salon --image on --sensitivity moyenne   # détection de sabotage (sans option : état)
-homesmart-cli cam tapo Salon                # Tapo : mot de passe du compte TP-Link (demandé au clavier), puis état
-homesmart-cli cam alarm Salon --start       # déclenche l'alarme (sans option : affiche ; --on/--siren/--light/--volume/--duration ; --stop)
-homesmart-cli cam track Salon on            # suivi des mouvements intégré à la caméra (Tapo)
+homesmart-cli cam tamper Salon --image on --sensitivity moyenne   # tamper detection (with no option: status)
+homesmart-cli cam tapo Salon                # Tapo: TP-Link account password (typed when prompted), then status
+homesmart-cli cam alarm Salon --start       # triggers the alarm (with no option: shows the settings; --on/--siren/--light/--volume/--duration; --stop)
+homesmart-cli cam track Salon on            # motion tracking built into the camera (Tapo)
 
-homesmart-cli vac scan                      # robots Valetudo et miIO du réseau (sans rien modifier)
+homesmart-cli vac scan                      # Valetudo and miIO robots on the network (without changing anything)
 homesmart-cli vac add-valetudo 192.168.1.59 --name "Aspirateur" --room Salon
-homesmart-cli vac add-miio 192.168.1.60 --token <32 caractères> --name Roborock
+homesmart-cli vac add-miio 192.168.1.60 --token <32 characters> --name Roborock
 homesmart-cli vac list
-homesmart-cli vac status Aspirateur         # activité, batterie, réglages possibles, erreurs, usure
-homesmart-cli vac start Aspirateur          # aussi : pause, stop, dock, locate
-homesmart-cli vac run Aspirateur fan:max    # aussi : mode:…, water:…, pattern:…
+homesmart-cli vac status Aspirateur         # activity, battery, available settings, errors, wear
+homesmart-cli vac start Aspirateur          # also: pause, stop, dock, locate
+homesmart-cli vac run Aspirateur fan:max    # also: mode:…, water:…, pattern:…
 
-homesmart-cli vision models --install       # modèles d'IA : téléchargement vérifié (≈ 75 Mo)
-homesmart-cli vision info                   # accélération utilisée (--cpu : processeur seul)
-homesmart-cli vision replay Salon --start "2026-10-20 20:52:59" --end "2026-10-20 20:53:44"   # --objects : aussi YOLOX
-homesmart-cli vision eval coco --data <dossier>     # qualité mesurée (aussi : faces, identify, falls, images)
-homesmart-cli vision eval alarms --data <dossier> --cache <dossier>   # toute la chaîne d'alertes sur les vidéos (--night, --model m)
+homesmart-cli vision models --install       # AI models: verified download (≈ 75 MB)
+homesmart-cli vision info                   # acceleration in use (--cpu: CPU only)
+homesmart-cli vision replay Salon --start "2026-10-20 20:52:59" --end "2026-10-20 20:53:44"   # --objects: YOLOX too
+homesmart-cli vision eval coco --data <folder>     # measured quality (also: faces, identify, falls, images)
+homesmart-cli vision eval alarms --data <folder> --cache <folder>   # the whole alert pipeline on the videos (--night, --model m)
 
-homesmart-cli listen models --install       # modèles de l'écoute (≈ 264 Mo)
-homesmart-cli listen tag son.wav            # sons reconnus dans un fichier
-homesmart-cli listen transcribe parole.wav  # parole → texte (voix détectée, puis Whisper)
-homesmart-cli listen eval sounds --data <dossier>   # aussi : speech (--snr 10, --phone)
+homesmart-cli listen models --install       # listening models (≈ 264 MB)
+homesmart-cli listen tag son.wav            # sounds recognized in a file
+homesmart-cli listen transcribe parole.wav  # speech → text (voice detection, then Whisper)
+homesmart-cli listen eval sounds --data <folder>   # also: speech (--snr 10, --phone)
 
-homesmart-cli secrets status                # où sont rangés les clés et mots de passe, et comment
-homesmart-cli secrets audit <dossier>       # aucune valeur privée de ta configuration dans ces fichiers ?
+homesmart-cli secrets status                # where keys and passwords are stored, and how
+homesmart-cli secrets audit <folder>       # are these files free of your configuration's private values?
 ```
 
-Beaucoup d'appareils n'acceptent **qu'une connexion locale à la fois** : si l'application est
-ouverte, la CLI peut être refusée par l'appareil (et inversement).
+Many devices accept **only one local connection at a time**: if the app is open, the device may
+refuse the CLI (and vice versa).
 
-## Ressources
+## Resources
 
-Mesuré sur la version optimisée, 5 appareils dont 2 prises à mesure interrogées toutes les 2 s,
-sur un processeur à 16 cœurs :
+Measured on the optimized build, 5 devices including 2 metering plugs polled every 2 s, on a
+16-core CPU:
 
-| | Processeur | Mémoire |
+| | CPU | Memory |
 |---|---|---|
-| Fenêtre visible, sans interaction | 0,8 % d'un cœur | ~115 Mo |
-| Fenêtre réduite | 0,16 % d'un cœur | ~90 Mo |
+| Window visible, no interaction | 0.8% of one core | ~115 MB |
+| Window minimized | 0.16% of one core | ~90 MB |
 
-L'interface ne se redessine que lorsqu'une valeur change (ou toutes les 30 s pour l'horloge) ;
-quand la fenêtre n'a pas le focus, ces redessins sont regroupés toutes les 3 s, et rien n'est
-dessiné quand elle est réduite. Les animations et la 3D ne calculent que pendant qu'elles bougent. La mémoire sert surtout au contexte graphique OpenGL et aux
-polices ; le réseau représente quelques centaines d'octets toutes les 2 s par prise.
+The interface only redraws when a value changes (or every 30 s for the clock); when the window is
+not focused, these redraws are grouped every 3 s, and nothing is drawn while it is minimized.
+Animations and 3D only compute while they are moving. Memory goes mostly to the OpenGL graphics
+context and fonts; network traffic amounts to a few hundred bytes every 2 s per plug.
 
 ## Configuration
 
-Un simple fichier JSON, partagé par l'app et la CLI :
+A plain JSON file, shared by the app and the CLI:
 
-- Windows : `%APPDATA%\HomeSmart\homesmart.json`
-- Linux : `~/.config/homesmart/homesmart.json`
-- ailleurs : option `--config` ou variable `HOMESMART_CONFIG`
+- Windows: `%APPDATA%\HomeSmart\homesmart.json`
+- Linux: `~/.config/homesmart/homesmart.json`
+- elsewhere: the `--config` option or the `HOMESMART_CONFIG` variable
 
 ```json
 {
@@ -849,85 +862,85 @@ Un simple fichier JSON, partagé par l'app et la CLI :
 }
 ```
 
-`kind` (`light`, `plug`, `switch`, `cover`, `vacuum`, `generic`) force le type si la détection
-automatique se trompe ; `vacuums` liste les aspirateurs robots hors Tuya (Valetudo, miIO, avec
-leur adresse et, pour miIO, leur jeton) ; `schema` reprend le `mapping` de tinytuya pour afficher des libellés lisibles ;
-`"powers_pc": true` marque la prise qui alimente le PC où tourne HomeSmart. À côté de la
-configuration, `session.json` (rafraîchi toutes les 5 s, avec la dernière minute de mesures des
-prises) permet de reconnaître au démarrage une session terminée net.
+`kind` (`light`, `plug`, `switch`, `cover`, `vacuum`, `generic`) forces the type if automatic
+detection gets it wrong; `vacuums` lists non-Tuya robot vacuums (Valetudo, miIO, with their address
+and, for miIO, their token); `schema` takes tinytuya's `mapping` to show readable labels;
+`"powers_pc": true` marks the plug that powers the PC HomeSmart runs on. Next to the
+configuration, `session.json` (refreshed every 5 s, with the last minute of plug measurements)
+makes it possible to recognize at startup a session that ended abruptly.
 
-### Clés et mots de passe : rangés à part, chiffrés
+### Keys and passwords: stored separately, encrypted
 
-`homesmart.json` ne garde **aucun secret** : on peut le montrer ou le joindre à une demande d'aide.
-Les clés locales Tuya, les mots de passe et codes de sécurité des caméras, les empreintes du mot de
-passe TP-Link (Tapo), le secret d'appairage des caméras HomeSmart, et les mots de passe ou jetons des
-aspirateurs vont dans **`homesmart.secrets.json`**, à côté de lui (`%APPDATA%\HomeSmart`,
-`~/.config/homesmart`) : jamais dans le dossier de l'application ni dans le dépôt du code.
+`homesmart.json` holds **no secrets**: you can show it or attach it to a request for help.
+Tuya local keys, camera passwords and security codes, TP-Link (Tapo) password hashes, the pairing
+secret of HomeSmart cameras, and vacuum passwords or tokens go into **`homesmart.secrets.json`**,
+next to it (`%APPDATA%\HomeSmart`, `~/.config/homesmart`): never in the application folder or in
+the code repository.
 
-Ce fichier est chiffré comme la galerie des visages (`src/protect.rs`) : **DPAPI** sous Windows
-(lisible par ton seul compte Windows, sur ce PC), **AES-256-GCM** sous Linux avec une clé rangée dans
-le trousseau de ta session ; sans trousseau (aucun installé, ou HomeSmart lancé hors session de
-bureau : SSH, service, tâche planifiée), il reste en clair avec les droits `600`, et le journal le
-dit. Un fichier déjà chiffré, lui, ne se relit que depuis la session qui a accès au trousseau.
-Mêmes limites que pour les visages (voir « Protection des empreintes ») : un programme lancé
-sous ton compte peut le déchiffrer comme HomeSmart le fait.
+This file is encrypted like the face gallery (`src/protect.rs`): **DPAPI** on Windows
+(readable only by your own Windows account, on this PC), **AES-256-GCM** on Linux with a key stored
+in your session's keyring; without a keyring (none installed, or HomeSmart started outside a desktop
+session: SSH, service, scheduled task), it stays in plain text with `600` permissions, and the log
+says so. An already encrypted file, for its part, can only be read back from the session that has
+access to the keyring. Same limits as for faces (see "Face embedding protection"): a program run under
+your account can decrypt it just as HomeSmart does.
 
-- Une clé écrite à la main dans `homesmart.json` (comme dans l'exemple ci-dessus) ou un ancien
-  fichier où tout était en clair : au lancement suivant, les secrets en sont sortis et rangés dans
-  `homesmart.secrets.json` ; le journal l'indique (source « Système »). L'ancien contenu en clair
-  n'est pas effacé physiquement du disque (SSD, journal du système de fichiers).
-- Les secrets d'abord, la configuration ensuite : un arrêt entre les deux n'en perd aucun.
-- Un fichier des secrets illisible (abîmé, venu d'un autre compte ou d'un autre PC) n'est jamais
-  écrasé : HomeSmart refuse de démarrer et dit quoi faire (le renommer, puis ressaisir les clés).
-- Le fichier des secrets ne se relit que sur le PC et le compte qui l'ont écrit : sur un autre PC,
-  récupère à nouveau les clés (`import-cloud`) et ressaisis les mots de passe des caméras.
-- `homesmart-cli secrets status` dit où il est et comment il est protégé.
+- A key written by hand in `homesmart.json` (as in the example above) or an old file where
+  everything was in plain text: at the next launch, the secrets are moved out of it and stored in
+  `homesmart.secrets.json`; the log records it (source « Système » (System)). The old plain-text
+  content is not physically erased from the disk (SSD, file system journal).
+- Secrets first, configuration second: a shutdown between the two loses none of them.
+- An unreadable secrets file (damaged, or coming from another account or another PC) is never
+  overwritten: HomeSmart refuses to start and tells you what to do (rename it, then re-enter the keys).
+- The secrets file can only be read back on the PC and account that wrote it: on another PC,
+  fetch the keys again (`import-cloud`) and re-enter the camera passwords.
+- `homesmart-cli secrets status` tells you where it is and how it is protected.
 
-## Contribuer
+## Contributing
 
-Le dépôt ne contient aucune donnée privée (configuration, journal, clés, modèles, exécutables :
-voir `.gitignore`). Pour qu'aucune ne s'y glisse en travaillant (une vraie clé dans un test, un
-vrai mot de passe dans un exemple…), active une fois le crochet fourni :
+The repository contains no private data (configuration, log, keys, models, executables:
+see `.gitignore`). To keep any from slipping in while you work (a real key in a test, a
+real password in an example…), enable the provided hook once:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Avant chaque commit, il lance `homesmart-cli secrets audit --staged` : les fichiers commités sont
-comparés aux valeurs de **ta** configuration (clés, mots de passe, jetons, empreinte du mot de passe
-TP-Link, identifiants, n° de série et adresses MAC de tes appareils). Si l'une y est, le commit est
-refusé et seul l'endroit est affiché, jamais la valeur. Les tests et exemples emploient des valeurs
-factices.
+Before each commit, it runs `homesmart-cli secrets audit --staged`: the committed files are
+compared against the values in **your** configuration (keys, passwords, tokens, TP-Link password
+hash, identifiers, serial numbers and MAC addresses of your devices). If one of them is found, the
+commit is refused and only the location is shown, never the value. Tests and examples use dummy
+values.
 
-## Organisation du code
+## Code layout
 
-| Fichier | Contenu |
+| File | Contents |
 |---|---|
-| `src/protocol/` | protocole Tuya : trames 55AA/6699, AES-ECB/GCM, HMAC, négociation 3.4/3.5 |
-| `src/device.rs` | connexion à un appareil (lecture et écriture en parallèle) |
-| `src/discovery.rs` | découverte UDP (ports 6666, 6667, 7000) |
-| `src/hub.rs` | une tâche par appareil : connexion permanente, battement de cœur, reconnexion |
-| `src/cloud.rs` | import unique des clés depuis Smart Life (connexion QR, requêtes chiffrées) |
-| `src/kinds.rs` | reconnaissance des types d'appareils et formats Tuya (couleurs, mesures, défauts, minuterie) |
-| `src/automation.rs` | garde-fous et programmes horaires (fonctions pures, testées) |
-| `src/energy.rs` | historique de consommation (intégration de la puissance, cumuls) |
-| `src/journal.rs` | journal permanent de toutes les actions |
-| `src/problems.rs` | détection des problèmes : règles pures et testées (extinctions non demandées et leur cause, hors ligne, tension, consommation, arrêt brutal du PC) |
-| `src/hub/problems.rs` | leur application aux appareils, aux caméras et à la session précédente ; essais contre des prises et une caméra simulées |
-| `src/protect.rs` | chiffrement au repos des données sensibles (DPAPI sous Windows, trousseau Secret Service sous Linux) |
-| `src/config.rs` | la configuration ; ses secrets rangés à part et chiffrés (`homesmart.secrets.json`) |
-| `src/house.rs` | plan de la maison (pièces, position des appareils) |
-| `src/camera/` | caméras : flux RTSP + décodage (`stream.rs`), ONVIF (`onvif.rs`), recherche (`discover.rs`), caméra simulée (`sim.rs`), caméras HomeSmart (`agent.rs`) |
-| `cam/proto/` | protocole des caméras HomeSmart : réglages, appairage SPAKE2, requêtes signées |
-| `cam/agent/` | `homesmart-cam`, l'agent qui tourne sur la caméra (serveur RTSP, encodage, API, mDNS) et son installation (`deploy/`) |
-| `src/hub/cameras.rs` | une tâche par caméra : flux ouvert à la demande, présence, journal |
-| `src/vacuum/` | aspirateurs robots : modèle commun (état, commandes, erreurs), Tuya « sd » (`tuya.rs`), Valetudo (`valetudo.rs`), miIO Roborock et MIoT (`miio.rs`), recherche (`scan.rs`), robots simulés (`sim.rs`) |
-| `src/hub/vacuums.rs` | un acteur par robot hors Tuya ; vue commune, commandes journalisées, fin de nettoyage, erreurs → problèmes |
-| `src/gui/` | l'interface egui (`three.rs` : petit moteur 3D logiciel, `fx.rs` : effets et animations) |
-| `src/sim.rs` | appareils simulés (démo et tests) |
-| `src/bin/cli.rs` | la ligne de commande |
+| `src/protocol/` | Tuya protocol: 55AA/6699 frames, AES-ECB/GCM, HMAC, 3.4/3.5 negotiation |
+| `src/device.rs` | connection to a device (reading and writing in parallel) |
+| `src/discovery.rs` | UDP discovery (ports 6666, 6667, 7000) |
+| `src/hub.rs` | one task per device: permanent connection, heartbeat, reconnection |
+| `src/cloud.rs` | one-time import of the keys from Smart Life (QR login, encrypted requests) |
+| `src/kinds.rs` | recognition of device types and Tuya formats (colors, measurements, faults, timer) |
+| `src/automation.rs` | safeguards and schedules (pure, tested functions) |
+| `src/energy.rs` | consumption history (power integration, running totals) |
+| `src/journal.rs` | permanent log of all actions |
+| `src/problems.rs` | problem detection: pure, tested rules (unrequested switch-offs and their cause, offline, voltage, consumption, abrupt PC shutdown) |
+| `src/hub/problems.rs` | applying them to devices, cameras and the previous session; tests against simulated plugs and a simulated camera |
+| `src/protect.rs` | at-rest encryption of sensitive data (DPAPI on Windows, Secret Service keyring on Linux) |
+| `src/config.rs` | the configuration; its secrets stored separately and encrypted (`homesmart.secrets.json`) |
+| `src/house.rs` | house plan (rooms, device positions) |
+| `src/camera/` | cameras: RTSP stream + decoding (`stream.rs`), ONVIF (`onvif.rs`), discovery (`discover.rs`), simulated camera (`sim.rs`), HomeSmart cameras (`agent.rs`) |
+| `cam/proto/` | HomeSmart camera protocol: settings, SPAKE2 pairing, signed requests |
+| `cam/agent/` | `homesmart-cam`, the agent that runs on the camera (RTSP server, encoding, API, mDNS) and its installation (`deploy/`) |
+| `src/hub/cameras.rs` | one task per camera: stream opened on demand, presence, log |
+| `src/vacuum/` | robot vacuums: common model (state, commands, errors), Tuya "sd" (`tuya.rs`), Valetudo (`valetudo.rs`), miIO Roborock and MIoT (`miio.rs`), discovery (`scan.rs`), simulated robots (`sim.rs`) |
+| `src/hub/vacuums.rs` | one actor per non-Tuya robot; common view, logged commands, end of cleaning, errors → problems |
+| `src/gui/` | the egui interface (`three.rs`: small software 3D engine, `fx.rs`: effects and animations) |
+| `src/sim.rs` | simulated devices (demo and tests) |
+| `src/bin/cli.rs` | the command line |
 
 ```bash
-cargo test   # dont des échanges complets contre un appareil simulé (3.1 → 3.5) et une caméra simulée (RTSP + ONVIF)
-cargo test --workspace   # avec l'agent des caméras HomeSmart et leur protocole
+cargo test   # including full exchanges against a simulated device (3.1 → 3.5) and a simulated camera (RTSP + ONVIF)
+cargo test --workspace   # with the HomeSmart camera agent and its protocol
 ```
